@@ -115,7 +115,7 @@ def check_constraints(
 
     # C2 — plafond par pas
     c2_puissances = [sum(solution.x[c][t] for c in range(N)) for t in range(T)]
-    c2_ok = all(p <= consigne.e_max_agr + tol for p in c2_puissances)
+    c2_ok = all(p <= consigne.P_max_agr + tol for p in c2_puissances)
 
     # C3 — bilan EDE
     total_eff = sum(

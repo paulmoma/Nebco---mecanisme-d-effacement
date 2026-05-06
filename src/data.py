@@ -80,7 +80,7 @@ class Consigne:
 
     e_retenu: List[float]
     delta_t: float = 0.5
-    e_max_agr: float = 6.0
+    P_max_agr: float = 6.0
     labels_temps: List[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:

@@ -1,6 +1,10 @@
 """
 Formulation MILP du dispatch interne NEBCO (Niveau 2).
 
+Solveur : CBC (COIN-OR Branch and Cut), embarqué par défaut avec PuLP.
+Pour des instances plus grandes, PuLP permet de substituer CBC par
+Gurobi ou CPLEX sans modifier la formulation.
+
 La fonction build_model construit le programme PuLP à partir d'un Portfolio
 et d'une Consigne, et retourne le problème ainsi qu'un dictionnaire des
 variables pour permettre l'inspection post-résolution.
@@ -105,7 +109,7 @@ def build_model(
 
         # C2 — Plafond réglementaire EDE [MW]
         prob += (
-            lpSum(x[c][t] for c in range(N)) <= consigne.e_max_agr,
+            lpSum(x[c][t] for c in range(N)) <= consigne.P_max_agr,
             f"C2_Plafond_EDE_t{t}",
         )
 

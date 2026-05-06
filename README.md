@@ -37,14 +37,14 @@ Un dispatch de mauvaise qualité dégrade l'indicateur de fiabilité de l'OE, ce
 ## Formulation
 
 **Variables**
-- `x[c,t]` ∈ ℝ₊ : puissance effacée par le client c au pas t [MW]
-- `δ[c,t]` ∈ {0,1} : activation du client c au pas t
+- $x[c,t]$ ∈ ℝ₊ : puissance effacée par le client c au pas t [MW]
+- $δ[c,t]$ ∈ {0,1} : activation du client c au pas t
 
 **Objectif** : min Σ ( C_act[c]·x[c,t]·Δt + f[c,t]·δ[c,t] )
 
 avec :
-- `C_act[c]` [€/MWh] — **coût variable de compensation** versé au client c proportionnellement à l'énergie effacée. Négocié bilatéralement, supposé stationnaire en v1.
-- `f[c,t]` [€] — **coût fixe d'activation** payé dès que δ[c,t]=1, indépendamment du volume effacé. Modélise les frais de télécommande, l'usure des équipements, et le "crédit de sollicitation" (risque de désengagement client en cas d'activations trop fréquentes). Différencié par (client, pas) pour permettre une modulation contextuelle.
+- $C_act[c]$ [€/MWh] — **coût variable de compensation** versé au client c proportionnellement à l'énergie effacée. Négocié bilatéralement, supposé stationnaire en v1.
+- $f[c,t]$ [€] — **coût fixe d'activation** payé dès que δ[c,t]=1, indépendamment du volume effacé. Modélise les frais de télécommande, l'usure des équipements, et le "crédit de sollicitation" (risque de désengagement client en cas d'activations trop fréquentes). Différencié par (client, pas) pour permettre une modulation contextuelle.
 
 **Contraintes**
 - C1 — Livraison exacte de la consigne RTE par pas
@@ -86,7 +86,7 @@ python -m examples.run_example
 python -m unittest discover tests
 ```
 
-Dépendances : `pulp` (solveur CBC inclus).
+Dépendances : $pulp$ (solveur CBC inclus).
 
 Exemple d'utilisation programmatique :
 
@@ -94,7 +94,7 @@ Exemple d'utilisation programmatique :
 from src import Client, Consigne, Portfolio, build_model, solve, print_full_report
 
 portfolio = Portfolio(clients=[...])
-consigne = Consigne(e_retenu=[1.0, 1.2, 1.5], delta_t=0.5, e_max_agr=6.0)
+consigne = Consigne(e_retenu=[1.0, 1.2, 1.5], delta_t=0.5, P_max_agr=6.0)
 
 prob, variables = build_model(portfolio, consigne)
 solution = solve(prob, variables)
@@ -105,32 +105,18 @@ print_full_report(solution, portfolio, consigne)
 
 Ce prototype privilégie la lisibilité de la formulation sur la fidélité opérationnelle. Les principales limites, documentées en détail dans la note technique :
 
-- **Un OE, un PE, une seule EDE**, sans distinction de typologie
-  Télérelevée/Profilée.
-- **C1 en égalité stricte** — la sous-livraison n'est pas autorisée, alors
-  qu'elle est pénalisée financièrement par RTE, pas interdite.
-- **Rebond hors horizon** — taux scalaire `r[c,t]` qui capte
-  l'ampleur mais pas le timing du rebond.
-- **Contrainte C3 bilan énergétique sur l'horizon d'optimisation court** — plus restrictif que le bilan
-  NEBCO réel contrôlé sur période glissante.
-- **Pas de contraintes inter-temporelles** par client (durée minimale,
-  temps de repos, nombre max d'activations).
-- **Baseline et gisement exogènes** — supposés connus, alors qu'ils font
-  chacun l'objet d'un sous-problème non trivial.
-- **Horizon fixe**, pas de redéclaration infrajournalière ; données
-  déterministes.
+- **Un OE, un PE, une seule EDE**, sans distinction de typologie Télérelevée/Profilée.
+- **C1 en égalité stricte** — la sous-livraison n'est pas autorisée, alors qu'elle est pénalisée financièrement par RTE, pas interdite.
+- **Rebond hors horizon** — taux scalaire $r[c,t]$ qui capte l'ampleur mais pas le timing du rebond.
+- **Contrainte C3 bilan énergétique sur l'horizon d'optimisation court** — plus restrictif que le bilan NEBCO réel contrôlé sur période glissante.
+- **Pas de contraintes inter-temporelles** par client (durée minimale, temps de repos, nombre max d'activations).
+- **Baseline et gisement exogènes** — supposés connus, alors qu'ils font chacun l'objet d'un sous-problème non trivial.
+- **Horizon fixe**, pas de redéclaration infrajournalière ; données déterministes.
 
-## Roadmap
 
-| Version | Extension                                                          |
-|---------|--------------------------------------------------------------------|
-| v1.1    | Note technique qui explique la modélisation                       |
-| v1.2    | C1 en inégalité + slack pénalisé (pénalités de sous-livraison)     |
-| v1.3    | Min up/down time et nombre max d'activations par client            |
-| v1.4    | Analyse duale de la relaxation LP à δ fixés (valeur des contraintes) |
-| v2.0    | Rebond explicite intra-horizon : matrice de réponse impulsionnelle `R_c[τ]` |
-| Eventuellement     | Multi-EDE : C3 répliquée par EDE, partition de la consigne         |
+## Perspectives
 
+Les principales directions d'amélioration sont documentées dans la note technique : relâchement de C1 en inégalité avec pénalité de sous-livraison, ajout de contraintes inter-temporelles par client, modélisation explicite du rebond intra-horizon via une matrice de réponse impulsionnelle, et extension au cas multi-EDE.
 
 ## About
 Curieux et passionné par les marchés de l'électricité, je me suis rendu compte que je maîtrisais mal les mécanismes d'effacement, qui sont pourtant de formidables outils pour rendre les systèmes électriques européens plus flexibles et résilients. 

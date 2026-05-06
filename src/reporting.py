@@ -150,10 +150,10 @@ def print_constraints_check(
 
     print("  C2 — Plafond agrégateur par pas :")
     for t, p in enumerate(checks["C2"]["puissances"]):
-        ok = p <= consigne.e_max_agr + 1e-4
+        ok = p <= consigne.P_max_agr + 1e-4
         status = "✓" if ok else "✗"
         print(
-            f"    t={labels_t[t]} : {p:.3f} / {consigne.e_max_agr:.1f} MW  {status}"
+            f"    t={labels_t[t]} : {p:.3f} / {consigne.P_max_agr:.1f} MW  {status}"
         )
 
     c3 = checks["C3"]

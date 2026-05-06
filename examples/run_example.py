@@ -76,7 +76,7 @@ def build_example_consigne() -> Consigne:
     return Consigne(
         e_retenu=[1.0, 1.2, 1.5, 1.0, 0.5, 0.4],
         delta_t=0.5,
-        e_max_agr=6.0,
+        P_max_agr=6.0,
         labels_temps=["18h00", "18h30", "19h00", "19h30", "20h00", "20h30"],
     )
 
