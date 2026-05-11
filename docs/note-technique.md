@@ -117,7 +117,7 @@ Avec les variables suivantes :
 
 Toutes les variables continues sont positives ($x_{c,t} \geq 0$), ce qui est implicitement garanti par C5 ($x_{c,t} \geq e_{min,c,t} \cdot \delta_{c,t}$ avec $e_{min} \geq 0$ et $\delta \in \{0,1\}$) mais doit être déclaré explicitement au solveur.
 
-La borne supérieure $ub_{c,t} = \min(p^{max}_{c,t},\; conso^{ref}_{c,t})$ intègre à la fois la puissance maximale ($p^{max}_{c,t}$) que le client $c$ consent à effacer et la contrainte de baseline (on ne peut pas effacer plus qu'on ne consomme). Elle intervient dans C4 et dans la borne de la variable $x_{c,t}$.
+La borne supérieure $ub_{c,t}$, définie dans le tableau ci-dessus comme le minimum de $p_{c,t}^{max}$ et $conso_{c,t}^{ref}$, intègre à la fois la puissance maximale que le client $c$ consent à effacer et la contrainte de baseline (on ne peut pas effacer plus qu'on ne consomme). Elle intervient dans C4 et dans la borne de la variable $x_{c,t}$.
 
 En pratique, C2 est rarement active si on contraint la livraison stricte de la consigne RTE : RTE ne devrait pas notifier un programme retenu excédant le plafond de l'OE. Néanmoins la contrainte est conservée comme garde-fou de cohérence et deviendrait structurante si l'on relâchait C1 en inégalité (sur-livraison possible mais pénalisée).
 
@@ -129,9 +129,7 @@ L'objectif retenu en 3.1 — minimiser le coût interne de dispatch — peut par
 Sur l'horizon d'un programme d'effacement retenu, le profit $\pi$ de l'OE s'écrit :
 
 $$
-\pi = \underbrace{\sum_t \lambda_t \cdot E_t^{retenu}}_{\text{vente de l'effacement}}
-\;-\; \underbrace{\sum_t B \cdot E_t^{eff}}_{\text{compensation fournisseurs}}
-\;-\; \underbrace{\sum_{c,t} \left( C_c^{act} \cdot x_{c,t} \cdot \Delta t + f_{c,t} \cdot \delta_{c,t} \right)}_{\text{coût dispatch interne}}- \underbrace{\sum_t \mu_t \cdot (E_t^{eff}-E_t^{retenu})}_{\text{pénalités}}
+\pi = \underbrace{\sum_t \lambda_t \cdot E_t^{retenu}}_{\text{vente de l'effacement}} - \underbrace{\sum_t B \cdot E_t^{eff}}_{\text{compensation fournisseurs}} - \underbrace{\sum_{c,t} \left( C_c^{act} \cdot x_{c,t} \cdot \Delta t + f_{c,t} \cdot \delta_{c,t} \right)}_{\text{coût dispatch interne}}- \underbrace{\sum_t \mu_t \cdot (E_t^{eff}-E_t^{retenu})}_{\text{pénalités}}
 $$
 
 avec $E_t^{eff}=\Delta t \cdot \sum_c x_{c,t}$ l'énergie totale effacée par l'OE sur le pas de temps $t$. Les quatre termes sont, dans l'ordre : la **vente de l'effacement** sur les marchés au prix spot $\lambda_t$ pour le volume $E_t^{retenu}$ retenu par RTE ; la **compensation versée aux fournisseurs** des sites effacés au barème forfaitaire $B$ fixé par la CRE (€/MWh), proportionnelle au volume effacé ; le **coût interne du dispatch**, pilotable par l'OE via les décisions $x_{c,t}$ et $\delta_{c,t}$ ; les **pénalités** sur les écarts de livraison (mécanisme de déséquilibre du marché de l'électricité, non imposé directement par NEBCO mais réel économiquement).
@@ -145,7 +143,7 @@ Sous C1 en égalité, $E_t^{eff} = E_t^{retenu}$ pour tout $t$. Trois des quatre
 Ces trois termes disparaissent par différentiation dans le problème d'optimisation :
 
 $$
-\arg\max_{x,\delta} \pi \;=\; \arg\min_{x,\delta} \sum_{c,t} \left( C_c^{act} \cdot x_{c,t} \cdot \Delta t + f_{c,t} \cdot \delta_{c,t} \right)
+\arg\max_{x,\delta} \pi = \arg\min_{x,\delta} \sum_{c,t} \left( C_c^{act} \cdot x_{c,t} \cdot \Delta t + f_{c,t} \cdot \delta_{c,t} \right)
 $$
 
 Minimiser le coût de dispatch interne revient donc à maximiser le profit complet, sans perte d'optimalité. L'objectif obtenu est en outre directement interprétable comme le coût que l'OE doit débourser pour honorer sa consigne, et n'introduit aucune dépendance aux paramètres de marché ($\lambda_t$, $B$) dans le code du Niveau 2.
@@ -157,7 +155,7 @@ L'équivalence démontrée en 3.2 tient strictement sous deux conditions :
 1. **C1 est une égalité.** Si on relâche C1 en inégalité (extension envisagée : sous-livraison autorisée avec pénalité), alors le volume livré $\sum_c x_{c,t} \cdot \Delta t$ devient une variable de décision. Le revenu NEBCO et le versement fournisseur en dépendent et doivent réapparaître explicitement dans l'objectif, conjointement avec un slack pénalisé sur la sous-livraison :
 
 $$
-\max \sum_t (\lambda_t - B) \cdot L_t \cdot \Delta t \;-\; \text{coût interne} \;-\; P \cdot s_t
+\max \sum_t (\lambda_t - B) \cdot L_t \cdot \Delta t - \text{coût interne} - P \cdot s_t
 $$
 
 où $L_t = \sum_c x_{c,t}$ est le volume livré et $s_t = E_t^{retenu} - L_t$ le slack pénalisé au taux $P$.
@@ -269,7 +267,7 @@ ___
 La contrainte C3 du modèle v1 :
 
 $$
-\sum_{c,t} r_{c,t} \cdot x_{c,t} \cdot \Delta t \;\leq\; \sum_{c,t} x_{c,t} \cdot \Delta t
+\sum_{c,t} r_{c,t} \cdot x_{c,t} \cdot \Delta t \leq \sum_{c,t} x_{c,t} \cdot \Delta t
 $$
 
 est appliquée sur l'horizon d'optimisation court (6 pas demi-horaires = 3 heures dans l'exemple de référence).
