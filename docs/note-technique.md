@@ -1,7 +1,7 @@
 ---
 title: "Note technique — Choix de modélisation du dispatch NEBCO"
 author: "Paul Molaro-Maqua"
-date: "21/04/2026"
+date: "11/05/2026"
 ---
 
 # Note technique — Choix de modélisation du dispatch NEBCO
@@ -80,6 +80,7 @@ Cette section présente d'abord la expression du problème retenue, la minimisat
 ### 3.1 Synthèse de la modélisation
 
 L'objectif est de minimiser le coût total de dispatch.
+
 $$
 \min_{x,\delta} \sum_{c,t} \left( C_c^{act} \cdot x_{c,t} \cdot \Delta t + f_{c,t} \cdot \delta_{c,t} \right)
 $$
@@ -155,11 +156,11 @@ L'équivalence démontrée en 3.2 tient strictement sous deux conditions :
 
 1. **C1 est une égalité.** Si on relâche C1 en inégalité (extension envisagée : sous-livraison autorisée avec pénalité), alors le volume livré $\sum_c x_{c,t} \cdot \Delta t$ devient une variable de décision. Le revenu NEBCO et le versement fournisseur en dépendent et doivent réapparaître explicitement dans l'objectif, conjointement avec un slack pénalisé sur la sous-livraison :
 
-  $$
-  \max \sum_t (\lambda_t - B) \cdot L_t \cdot \Delta t \;-\; \text{coût interne} \;-\; P \cdot s_t
-  $$
+$$
+\max \sum_t (\lambda_t - B) \cdot L_t \cdot \Delta t \;-\; \text{coût interne} \;-\; P \cdot s_t
+$$
 
-  où $L_t = \sum_c x_{c,t}$ est le volume livré et $s_t = E_t^{retenu} - L_t$ le slack pénalisé au taux $P$.
+où $L_t = \sum_c x_{c,t}$ est le volume livré et $s_t = E_t^{retenu} - L_t$ le slack pénalisé au taux $P$.
 
 2. **Le plan d'effacement retenu $E_t^{retenu}$ est fixé.** Si on co-optimisait Niveau 1 et Niveau 2 (offre et dispatch simultanés), revenu et versement redeviendraient variables.
 
@@ -174,7 +175,7 @@ ___
 Un **programme linéaire** (Linear Program, **LP**) minimise (ou maximise) une fonction objectif linéaire sur un ensemble admissible défini par un nombre fini de contraintes linéaires, avec des variables réelles. Le problème est de la forme :
 
 $$
-\min \; c^\top x \qquad \text{s.c.} \qquad A x \leq b, \quad x \in \mathbb{R}^n
+\min c^\top x \qquad \text{s.c.} \qquad A x \leq b, \quad x \in \mathbb{R}^n
 $$
 
 Le domaine admissible est un **polyèdre convexe**. Cette structure géométrique entraîne plusieurs propriétés fortes :
@@ -190,7 +191,7 @@ L'analyse duale est souvent aussi précieuse que la solution primale : elle indi
 Un **programme linéaire mixte en nombres entiers** (Mixed Integer Linear Program, **MILP**) étend le LP en autorisant un sous-ensemble des variables à ne prendre que des valeurs entières, souvent restreintes à $\{0, 1\}$ (variables binaires) :
 
 $$
-\min \; c^\top x + d^\top y \qquad \text{s.c.} \qquad A x + B y \leq b, \quad x \in \mathbb{R}^n,\; y \in \mathbb{Z}^p
+\min c^\top x + d^\top y \qquad \text{s.c.} \qquad A x + B y \leq b, \quad x \in \mathbb{R}^n, y \in \mathbb{Z}^p
 $$
 
 Le qualificatif *mixte* désigne précisément la coexistence des variables continues et entières. Cette extension change la nature du problème :
@@ -232,7 +233,7 @@ Le rebond (ou *report de consommation*) désigne la consommation augmentée qui 
 Le modèle v1 représente le rebond par un coefficient $r_{c,t} \in [0, +\infty[$ :
 
 $$
-\text{rebond}_{c,t} = r_{c,t} \cdot x_{c,t} \cdot \Delta t
+rebond_{c,t} = r_{c,t} \cdot x_{c,t} \cdot \Delta t
 $$
 
 Ce coefficient capture l'**ampleur** du rebond mais pas son **timing**. Le rebond est supposé hors horizon d'optimisation — c'est-à-dire qu'il se produit après la fenêtre considérée par le modèle. C'est cohérent avec le fait qu'on utilise $r_{c,t}$ uniquement dans C3 (bilan global), jamais dans C1 (livraison par pas).
@@ -248,7 +249,7 @@ La modélisation fidèle remplace le scalaire par une **matrice de réponse impu
 Le bilan de consommation au pas $t$ devient :
 
 $$
-conso^{réalisée}_{c,t} = conso^{réalisée}_{c,t} \;-\; x_{c,t} \;+\; \sum_{\tau \geq 1} R_c[\tau] \cdot x_{c, t-\tau}
+conso^{réalisée}_{c,t} = conso^{ref}_{c,t} - x_{c,t}  + \sum_{\tau \geq 1} R_c[\tau] \cdot x_{c, t-\tau}
 $$
 
 Ce qui change :
@@ -290,7 +291,7 @@ Deux entrées majeures du modèle sont supposées connues, alors qu'elles sont l
 
 ### 7.1 Baseline (Courbe de Référence NEBCO)
 
-$conso^{réalisée}_{c,t}$ est la consommation qu'aurait eu le client en l'absence d'effacement. Elle sert à deux choses dans le modèle :
+$conso^{ref}_{c,t}$ est la consommation qu'aurait eu le client en l'absence d'effacement. Elle sert à deux choses dans le modèle :
 - Borne supérieure de l'effacement (on ne peut pas effacer plus qu'on ne consomme).
 - Référence pour le contrôle du réalisé par RTE *a posteriori*.
 
@@ -322,7 +323,6 @@ Les choix documentés ici reflètent un arbitrage entre représentation fidèle 
 - **Multi-EDE** : répliquer C3 par EDE et gérer des périodes de bilan distinctes selon la typologie Télérelevée/Profilée (cf. section 6).
 - **Incertitude sur le gisement** : le $p^{max}_{c,t}$ réel n'est connu qu'en distribution — une approche stochastique (SAA sur scénarios) permettrait de robustifier le dispatch.
 - **Tarification interne et analyse de sensibilité** : implémentation systématique de la relaxation LP à $\delta^*$ pour exposer les prix fictifs des contraintes (cf. section 4.4), notamment le dual de C1 qui donne le coût marginal interne d'un MWh livré et permet de remonter au Niveau 1 pour tarifer les offres.
-
 
 
 ___
