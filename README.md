@@ -43,7 +43,7 @@ Un dispatch de mauvaise qualité dégrade l'indicateur de fiabilité de l'OE, ce
 **Objectif** : min Σ ( C_act[c]·x[c,t]·Δt + f[c,t]·δ[c,t] )
 
 avec :
-- $C_act[c]$ [€/MWh] — **coût variable de compensation** versé au client c proportionnellement à l'énergie effacée. Négocié bilatéralement, supposé stationnaire en v1.
+- $C^{act}_{c,t}$ [€/MWh] — **coût variable de compensation** versé au client c proportionnellement à l'énergie effacée. Négocié bilatéralement, supposé stationnaire en v1.
 - $f[c,t]$ [€] — **coût fixe d'activation** payé dès que δ[c,t]=1, indépendamment du volume effacé. Modélise les frais de télécommande, l'usure des équipements, et le "crédit de sollicitation" (risque de désengagement client en cas d'activations trop fréquentes). Différencié par (client, pas) pour permettre une modulation contextuelle.
 
 **Contraintes**
@@ -132,22 +132,9 @@ Ce travail est mené **en parallèle d’une formation "[Data Engineer & IA](htt
 
 ## Utilisation des outils d'intelligence artificielle
 
-Dans le cadre de ce projet, j'ai utilisé des outils d'IA pour :
-- **Structurer et clarifier** certaines parties de la documentation (README, notes techniques).
-- **Vérifier la terminologie et la cohérence de certaines hypothèses** (règles NEBCO).
-- **Explorer et challenger des pistes de modélisation** (discussions sur les contraintes, simplification des hypothèses).
-- Générer des **jeux de données d'exemple cohérentes**
-- Aider à **implémenter le module de reporting** et à **fiabiliser le solver** (détection et correction d'un bug sur les variables éliminées en presolve CBC)
+Dans ce projet, j'ai utilisé des outils d'IA générative (Claude, Anthropic) comme assistant de travail. Concrètement : vérification de la cohérence entre la modélisation et les règles NEBCO, discussion et challenge des pistes de modélisation, aide à la rédaction et à la structuration de la documentation et du README, génération de jeux de données d'exemple, assistance à l'implémentation du module de reporting et détection de bug sur les variables éliminées en presolve par CBC.
 
-**Ce qui reste issu de mon travail** :
-- L'**Analyse réglementaire**
-- La **modélisation mathématique** (choix des variables, contraintes, fonction objectif).
-- La **conception du code** (architecture du projet, choix techniques, structure des modules).
-- Les **hypothèses simplificatrices et le cadrage du problème**.
-- La **relecture critique** de toutes les propositions reçues.
-
-*Outils utilisés* : Claude (Anthropic) pour la documentation, les discussions techniques et l'assistance au développement..
-
+Toutes les propositions reçues ont fait l'objet d'une relecture critique. L'IA a accéléré certaines tâches, mais n'a pas substitué le raisonnement.
 
 ## Références
 

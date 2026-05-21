@@ -22,9 +22,9 @@ ___
 
 ## 1. Cadre réglementaire du NEBCO et décomposition du problème
 
-Le mécanisme NEBCO (Notification d'Échanges de Blocs de Consommation) permet à des Opérateurs d'Effacement (OE) agréés par RTE de valoriser des effacements de consommation sur les marchés de l'énergie — la veille pour le lendemain et en infrajournalier. Il succède au mécanisme NEBEF en vigueur depuis 2014 et s'en distingue principalement par la possibilité de valoriser également les modulations à la hausse dans le cadre de décalages de consommation (reports ou anticipations de consommation).
+Le mécanisme NEBCO (Notification d'Échanges de Blocs de Consommation) permet à des Opérateurs d'Effacement (OE) agréés par RTE de valoriser des effacements de consommation sur les marchés de l'énergie — la veille pour le lendemain et en infrajournalier. Il succède au mécanisme NEBEF (Notification d'Échanges de Blocs d'Effacement), en vigueur depuis 2014 et s'en distingue principalement par la possibilité de valoriser également les modulations à la hausse dans le cadre de décalages de consommation (reports ou anticipations de consommation).
 
-Concrètement, le fonctionnement est le suivant : l'Opérateur d'Effacement (OE) contractualise des clients capables de réduire ponctuellement leur consommation (industriels, gestionnaires de chauffe-eau, opérateurs de recharge de VE, etc.). Il construit des offres d'effacement qu'il soumet sur les marchés de l'énergie ou sur le mécanisme d'ajustement de RTE — la réduction de soutirage étant traitée, du point de vue du réseau, comme équivalente à une injection de puissance. Lorsqu'une offre est retenue, RTE notifie à l'OE un programme d'effacement — un profil de puissance à livrer sur un horizon donné. Ce volume est valorisé sur les marchés de l'énergie (bourse EPEX Spot ou gré-à-gré). L'OE doit alors activer ses clients pour délivrer ce volume, tout en respectant les contraintes du cadre NEBCO (bilan énergétique, plafond de capacité, versement aux fournisseurs des sites effacés). Le contrôle du volume effectivement réalisé est assuré a posteriori par RTE sur la base de courbes de référence.
+Concrètement, le fonctionnement est le suivant : l'Opérateur d'Effacement (OE) contractualise des clients capables de réduire ponctuellement leur consommation (industriels, gestionnaires de chauffe-eau, opérateurs de recharge de véhicule électrique, etc.), organisés en **Entités d'Effacement (EDE)** — unités de gestion regroupant des sites de soutirage au sein du périmètre de l'OE. Il construit des offres d'effacement qu'il soumet sur les marchés de l'énergie ou sur le mécanisme d'ajustement de RTE — la réduction de soutirage étant traitée, du point de vue du réseau, comme équivalente à une injection de puissance. Lorsqu'une offre est retenue, RTE notifie à l'OE un programme d'effacement — un profil de puissance à livrer sur un horizon donné. Ce volume est valorisé sur les marchés de l'énergie (bourse EPEX Spot ou gré-à-gré). L'OE doit alors activer ses clients pour délivrer ce volume, tout en respectant les contraintes du cadre NEBCO (bilan énergétique, plafond de capacité, versement aux fournisseurs des sites effacés). Le contrôle du volume effectivement réalisé est assuré a posteriori par RTE sur la base de courbes de référence.
 
 ### Décomposition en niveaux de décision
 
@@ -59,7 +59,7 @@ Opérateur d'Effacement (OE)              ← personne morale agréée par RTE
         │     └── ...
 ```
 
-Le prototype v1 considère **un OE gérant un PE contenant une seule EDE**, laquelle regroupe les N clients du portefeuille. C'est une simplification de modélisation, pas une position réglementaire.
+Le prototype v1 considère **un Opérateur d'Effacement gérant un Périmètre d'Equilibre contenant une seule EDE**, laquelle regroupe les N clients du portefeuille. C'est une simplification de modélisation, pas une position réglementaire.
 
 **La typologie de l'EDE (Télérelevée ou Profilée) n'est pas distinguée.** Cette distinction est pourtant importante dans NEBCO : elle conditionne la méthode de contrôle du réalisé (mesure directe des courbes de charge pour les sites télérelevés, méthode des panels pour les sites profilés), et donc la façon dont la baseline (courbe de consommation de référence) et le rebond sont reconstruits. En ignorant cette distinction, le modèle traite tous les clients comme s'ils étaient télérelevés avec mesure directe.
 
@@ -76,7 +76,7 @@ Cette limite ouvre la voie à une extension multi-EDE et à un bilan sur périod
 
 ___
 ## 3. Modélisation et fonction objectif : équivalence sous livraison stricte
-Cette section présente d'abord la expression du problème retenue, la minimisation des coûts internes. On justifie ensuite ce choix d'objectif en montrant qu'il est équivalent à la maximisation du profit complet de l'OE sous l'hypothèse de livraison stricte (3.2), avant d'en délimiter le domaine de validité (3.3).
+Cette section présente d'abord l'expression du problème retenue, la minimisation des coûts internes. On justifie ensuite ce choix d'objectif en montrant qu'il est équivalent à la maximisation du profit complet de l'OE sous l'hypothèse de livraison stricte (3.2), avant d'en délimiter le domaine de validité (3.3).
 ### 3.1 Synthèse de la modélisation
 
 L'objectif est de minimiser le coût total de dispatch.
