@@ -1,6 +1,11 @@
 # NEBCO Dispatch — Optimisation interne d'un opérateur d'effacement
 
-Prototype MILP de dispatch interne pour un **Opérateur d'Effacement** (OE, aussi appelé agrégateur) opérant sous le cadre **NEBCO** (Notification d'Échanges de Blocs de Consommation, délibération CRE n°2025-199, en vigueur depuis le 01/09/2025).
+## Abstract
+
+*Projet personnel — appropriation des mécanismes d'effacement et de leur récente refonte sous NEBCO, à travers la modélisation du problème de dispatch interne d'un opérateur d'effacement.*
+
+Prototype Python/MILP qui modélise comment un opérateur d'effacement répartit, entre ses clients, un volume de réduction de consommation vendu à RTE sur le marché NEBCO (en vigueur depuis le 01/09/2025). Minimisation du coût interne sous contraintes physiques et réglementaires, formulé avec PuLP + solveur CBC. Ce repo couvre le dispatch interne post-notification RTE (Niveau 2 de la chaîne décisionnelle d'un opérateur d'effacement).
+
 
 ## Contexte et vocabulaire NEBCO
 
@@ -86,7 +91,7 @@ python -m examples.run_example
 python -m unittest discover tests
 ```
 
-Dépendances : $pulp$ (solveur CBC inclus).
+**Dépendances** : [PuLP](https://coin-or.github.io/pulp/) (≥ 2.7) pour la modélisation MILP, avec le solveur [CBC](https://github.com/coin-or/Cbc) embarqué par défaut.
 
 Exemple d'utilisation programmatique :
 
