@@ -83,6 +83,20 @@ class TestExampleScenario(unittest.TestCase):
                 if self.solution.delta[c][t] == 0:
                     self.assertLess(self.solution.x[c][t], 1e-6)
 
+    def test_c4_upper_bound(self):
+        """C4 : x ≤ ub · δ — si δ = 1, x ne dépasse pas ub[c][t]."""
+        for c, client in enumerate(self.portfolio.clients):
+            for t in range(self.consigne.T):
+                if self.solution.delta[c][t] == 1:
+                    self.assertLessEqual(self.solution.x[c][t], client.ub(t) + 1e-6)
+
+    def test_c5_min_threshold(self):
+        """C5 : x ≥ e_min · δ — si δ = 1, x respecte le seuil minimal."""
+        for c, client in enumerate(self.portfolio.clients):
+            for t in range(self.consigne.T):
+                if self.solution.delta[c][t] == 1:
+                    self.assertGreaterEqual(self.solution.x[c][t], client.e_min[t] - 1e-6)
+
 
 if __name__ == "__main__":
     unittest.main()
