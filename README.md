@@ -70,11 +70,14 @@ nebco-dispatch/
 │   ├── solver.py        # solve + check_constraints
 │   └── reporting.py     # affichage formaté
 ├── examples/
-│   └── run_example.py   # scénario 4 clients × 6 pas demi-horaires
+│   ├── run_example.py       # scénario de base (4 clients × 6 pas)
+│   ├── run_example_peak.py  # scénario pointe hivernale (6 clients × 8 pas)
+│   └── plot_dispatch.py     # génération des figures (dispatch, coût/rebond, profil client)
 ├── tests/
-│   └── test_model.py    # tests unitaires et d'intégration
+│   └── test_model.py        # tests unitaires et d'intégration
 └── docs/
-    └── note-technique.md   # justifications approfondies des choix de modélisation
+    ├── note-technique.md    # justifications approfondies des choix de modélisation
+    └── figures/             # figures générées par plot_dispatch.py
 ```
 
 ## Installation et utilisation
@@ -84,8 +87,12 @@ git clone https://github.com/<user>/nebco-dispatch.git
 cd nebco-dispatch
 pip install -r requirements.txt
 
-# Lancer l'exemple
+# Lancer les exemples
 python -m examples.run_example
+python -m examples.run_example_peak
+
+# Générer les figures
+python -m examples.plot_dispatch
 
 # Lancer les tests
 python -m unittest discover tests
@@ -105,6 +112,32 @@ prob, variables = build_model(portfolio, consigne)
 solution = solve(prob, variables)
 print_full_report(solution, portfolio, consigne)
 ```
+
+## Exemple — scénario de pointe hivernale
+
+Un opérateur d'effacement doit livrer 18.3 MWh sur l'horizon 16h-19h30 (8 pas demi-horaires) en réponse à une consigne RTE retenue sur NEBCO. Le modèle dispatche cette demande entre 6 clients du portefeuille selon leurs paramètres physiques (gisement, seuils, taux de rebond) et économiques (coût variable, coût fixe d'activation).
+
+### Vue globale du dispatch
+
+![Dispatch NEBCO — pointe hivernale](docs/figures/dispatch_peak.png)
+
+La consigne RTE (en escalier noir pointillé) est suivie pas à pas par une combinaison de 4 clients activés. À 18h00, pointe à 7.6 MW : le client "Véhicule électrique" apparaît pour compléter le client "Chauffage résidentiel" saturé à sa borne supérieure. Les clients "datacenter" et "process industriel" ne sont pas activés sur ce scénario.
+
+### Arbitrage coût / rebond du modèle
+
+![Arbitrage coût / rebond](docs/figures/cost_vs_rebound.png)
+
+Le modèle choisit ses clients selon deux critères couplés : leur **coût variable** (axe Y) et leur **taux de rebond moyen** (axe X). Trois enseignements :
+
+- Les clients **non activés** (datacenter, industriel process, en gris) sont trop coûteux pour ce volume cible — le modèle préfère sursolliciter les clients moins chers même proches de la limite de rebond.
+- Le client **chambre froide** est activé bien que relativement coûteux (20 €/MWh) : son faible taux de rebond (0.42) permet de **compenser le rebond élevé** du chauffe-eau et de la flotte de Véhicules électriques, et de saturer C3 à 1.000 sans la violer.
+- C3 (bilan énergétique EDE) impose que le rebond total ne dépasse pas l'effacement total sur l'horizon. Ici, 18.3 / 18.3 MWh → ratio = 1.000, **bilan conforme**.
+
+### Diagnostic au niveau d'un client : le chauffe-eau
+
+![Profil d'effacement — Chauffe-eau](docs/figures/profile_client.png)
+
+Le chauffe-eau est l'un des clients les plus sollicités sur ce scénario (activé sur les 8 pas, 7.91 MWh effacés). Son taux de rebond individuel atteint 1.12 — donc **r > 1 au niveau du client seul**. C'est admissible : la contrainte C3 du modèle s'applique à la maille EDE, pas client par client. Le rebond local est compensé par les clients à faible rebond (chambre froide notamment) dans le bilan agrégé.
 
 ## Limites de la v1
 
@@ -126,7 +159,7 @@ Les principales directions d'amélioration sont documentées dans la note techni
 ## About
 Curieux et passionné par les marchés de l'électricité, je me suis rendu compte que je maîtrisais mal les mécanismes d'effacement, qui sont pourtant de formidables outils pour rendre les systèmes électriques européens plus flexibles et résilients. 
 
-En me renseignant sur le nouveau dispositif **NEBCO**, j'ai immédiatement fait le lien avec les problèmes de recherche opérationnelle sur lesquels j'avais travaillé lors de ma formation à l'**ENSTA Paris**. J'ai donc eu envie de modéliser une partie du problème auquel sont confrontés les **Opérateurs d'Effacement**, afin de mieux comprendre le NEBCO et de **remobiliser des compétences** de modélisation et d'optimisation, qui commençaient à être bien enfouies dans mon système neuronal ! Une replongée dans les brillants et complexes cours de Jean-Charles Gilbert ([lien](https://who.rocq.inria.fr/Jean-Charles.Gilbert/ensta/cours2a/optim.html)) m'a rappelé à quel point l'univers de la recherche opérationnelle est riche et complexe. 
+En me renseignant sur le nouveau dispositif **NEBCO**, j'ai immédiatement fait le lien avec les problèmes de recherche opérationnelle sur lesquels j'avais travaillé lors de ma formation à l'**ENSTA Paris**. J'ai donc eu envie de modéliser une partie du problème auquel sont confrontés les **Opérateurs d'Effacement**, afin de mieux comprendre le NEBCO et de **remobiliser des compétences** de modélisation et d'optimisation, qui commençaient à être bien enfouies dans mon système neuronal ! Une replongée dans les cours de Jean-Charles Gilbert ([lien](https://who.rocq.inria.fr/Jean-Charles.Gilbert/ensta/cours2a/optim.html)) m'a rappelé à quel point l'univers de la recherche opérationnelle est riche et complexe. 
 
 Loin de prétendre maîtriser aujourd'hui la RO, mon ambition est de **comprendre les modèles, de les implémenter, et d'en tirer des analyses pertinentes**. 
 
