@@ -210,11 +210,11 @@ Plusieurs aspects du problème de dispatch sont **intrinsèquement discrets** et
 
 Tenter de modéliser ces aspects en LP pur revient à les relâcher : lisser les coûts fixes sur le volume, ignorer les seuils. On produit alors des dispatches physiquement irréalistes — un industriel activé à 10 % de son seuil minimal, par exemple — et des coûts sous-estimés.
 
-Le choix du MILP est donc un arbitrage : on perd la dualité forte (les binaires cassent la convexité), mais on conserve une formulation fidèle au problème physique et contractuel. Le temps de calcul reste négligeable pour des portefeuilles de taille raisonnable : le prototype à 4 clients × 6 pas se résout en une fraction de seconde avec CBC.
+Le choix du MILP est donc un arbitrage : on perd la dualité forte (les binaires cassent la convexité), mais on conserve une formulation fidèle au problème physique et contractuel. Le prototype utilise CBC (COIN-OR Branch and Cut), solveur open-source embarqué par défaut avec PuLP, suffisant pour les exemples de la taille considérée ici — le scénario à 6 clients × 8 pas de temps se résout en une fraction de seconde. Pour des portefeuilles industriels (plusieurs centaines de clients, horizon journalier au pas demi-horaire), un solveur commercial (Gurobi, CPLEX) ou plus récent (HiGHS) serait plus indiqué.
 
 ### 4.4 Récupération partielle de l'analyse duale
 
-Une approche permet de récupérer une partie du contenu informatif des duaux : résoudre le MILP complet pour trouver le plan d'activation optimal $\delta^*$, puis **résoudre la relaxation LP en fixant $\delta = \delta^*$**. Les multiplicateurs obtenus sont alors interprétables **conditionnellement** à ce plan d'activation : ils répondent à la question « quelle serait la valeur marginale d'un MWh de consigne supplémentaire, *sans changer quels clients sont activés* ? ». C'est une analyse de sensibilité locale, pas globale, mais utile pour la tarification interne et la communication aux clients.
+Une approche permet de récupérer une partie du contenu informatif des duaux : résoudre le MILP complet pour trouver le plan d'activation optimal $\delta^\ast$, puis **résoudre la relaxation LP en fixant $\delta = \delta^\ast$**. Les multiplicateurs obtenus sont alors interprétables **conditionnellement** à ce plan d'activation : ils répondent à la question « quelle serait la valeur marginale d'un MWh de consigne supplémentaire, *sans changer quels clients sont activés* ? ». C'est une analyse de sensibilité locale, pas globale, mais utile pour la tarification interne et la communication aux clients.
 
 Le multiplicateur le plus parlant est celui de C1 : il donne le coût marginal interne d'un MWh de consigne supplémentaire, c'est-à-dire le prix d'achat marginal au sein du portefeuille. Ce dual ferme la boucle avec la fonction de profit de la section 3.2 : c'est précisément le seuil en dessous duquel l'OE ne peut pas vendre rentablement un MWh supplémentaire au Niveau 1, et au-dessus duquel chaque MWh vendu rapporte. Cette extension pourrait être implémentée dans une version ultérieure.
 
@@ -240,26 +240,27 @@ Cette modélisation autorise $r > 1$ pour certains clients (chauffe-eau avec ré
 
 **Limite principale** : en pratique, le rebond d'un effacement à 18h tombe à 19h-20h, donc *dans* l'horizon d'optimisation usuel. Ignorer ce timing fausse C1 sur les pas suivants : un effacement nominal de 1 MW à 18h peut être partiellement annulé par le rebond d'un effacement précédent.
 
-### 5.3 Modélisation plus fidèle : matrice de réponse impulsionnelle
+### 5.3 Vers une matrice de réponse impulsionnelle
 
-La modélisation fidèle remplace le scalaire par une **matrice de réponse impulsionnelle** $R_c[\tau]$ : pour le client $c$, un effacement unitaire au pas $t$ génère un rebond $R_c[\tau]$ au pas $t + \tau$.
+Une extension naturelle remplace le taux scalaire $r_c$ par une **matrice de réponse impulsionnelle** $R_c[\tau]$ : un effacement au pas $t$ génère un rebond $R_c[\tau]$ au pas $t + \tau$. Le rebond n'est plus une quantité globale, il est étalé dans le temps.
 
-Le bilan de consommation au pas $t$ devient :
+Le bilan de consommation devient :
 
 $$
-conso^{réalisée}_{c,t} = conso^{ref}_{c,t} - x_{c,t}  + \sum_{\tau \geq 1} R_c[\tau] \cdot x_{c, t-\tau}
+conso^{\text{réalisée}}_{c,t} = conso^{\text{ref}}_{c,t} - x_{c,t} + \sum_{\tau \geq 1} R_c[\tau] \cdot x_{c, t-\tau}
 $$
 
-Ce qui change :
+Conséquences principales :
 
-- **C1 deviendrait dynamique** : la livraison nette à $t$ dépend des décisions aux pas antérieurs $t-\tau$ via le rebond. Le problème reste linéaire (en $x$) mais devient couplé inter-temporellement.
-- **C3 pourrait se simplifier** : si $\sum_\tau R_c[\tau] = r_c$ (intégrale du rebond = taux global), le bilan C3 s'obtient comme limite du cas scalaire ; mais la répartition temporelle est explicite.
-- **Besoin d'identifier $R_c$** : c'est un problème inverse de **déconvolution** — on cherche la réponse impulsionnelle à partir de couples (effacement notifié, écart à la baseline mesuré). En pratique, l'identification est mal posée et nécessite une régularisation (Tikhonov, lissage, contraintes de positivité ou de monotonie). Pour les équipements simples, un modèle physique (décharge thermique exponentielle d'un ballon d'eau chaude, par exemple) fournit une forme paramétrique qui réduit considérablement le nombre de paramètres à identifier.
+- **C1 devient dynamique** : la livraison nette au pas $t$ dépend des décisions prises aux pas antérieurs via le rebond différé. Le problème reste linéaire, mais les pas de temps sont couplés.
+- **Cohérence avec la v1** : en sommant les rebonds différés sur l'horizon, on retrouve le taux scalaire ($\sum_\tau R_c[\tau] = r_c$). La matrice est plus fine que le modèle scalaire de la V1, sans le contredire.
+- **Anticipations** : étendre $R_c[\tau]$ aux $\tau < 0$ permet de modéliser les hausses de consommation **avant** l'effacement, reconnues par NEBCO.
 
-La matrice $R_c[\tau]$ peut s'étendre aux valeurs $\tau < 0$ pour modéliser les anticipations de consommation (hausse avant l'effacement), reconnues par NEBCO au même titre que les reports.
+Identifier $R_c[\tau]$ à partir de mesures est relativement facile pour les équipements à dynamique physique simple. 
+Pour des équipements plus complexes, soit la physique du procédé l'est, soit le rebond dépend du comportement du client (arbitrage entre confort, contrainte opérationnelle, gain financier), qui ne se modélise pas analytiquement. 
+**Le machine learning** offre alors une alternative : apprendre $R_c[\tau]$ à partir de l'historique des effacements et des écarts à la baseline mesurés, sans hypothèse a priori sur la forme de la réponse.
 
-Cette extension serait le changement de modélisation le plus important, et celui qui rapprocherait le plus le modèle des contraintes opérationnelles réelles.
-
+Cette extension serait l'amélioration la plus importante du modèle.
 ___
 
 ## 6. Bilan énergétique C3 : horizon local vs période glissante NEBCO
@@ -320,7 +321,7 @@ Les choix documentés ici reflètent un arbitrage entre représentation fidèle 
 - **Rebond intra-horizon** : remplacer le taux scalaire par une matrice de réponse impulsionnelle $R_c[\tau]$, qui rendrait C1 dynamique et couplée inter-temporellement (cf. section 5.3).
 - **Multi-EDE** : répliquer C3 par EDE et gérer des périodes de bilan distinctes selon la typologie Télérelevée/Profilée (cf. section 6).
 - **Incertitude sur le gisement** : le $p^{max}_{c,t}$ réel n'est connu qu'en distribution — une approche stochastique (SAA sur scénarios) permettrait de robustifier le dispatch.
-- **Tarification interne et analyse de sensibilité** : implémentation systématique de la relaxation LP à $\delta^*$ pour exposer les prix fictifs des contraintes (cf. section 4.4), notamment le dual de C1 qui donne le coût marginal interne d'un MWh livré et permet de remonter au Niveau 1 pour tarifer les offres.
+- **Tarification interne et analyse de sensibilité** : implémentation systématique de la relaxation LP à $\delta^\ast$ pour exposer les prix fictifs des contraintes (cf. section 4.4), notamment le dual de C1 qui donne le coût marginal interne d'un MWh livré et permet de remonter au Niveau 1 pour tarifer les offres.
 
 
 ___
