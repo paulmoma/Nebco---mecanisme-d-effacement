@@ -45,10 +45,10 @@ Un dispatch de mauvaise qualité dégrade l'indicateur de fiabilité de l'OE, ce
 - $x[c,t]$ ∈ ℝ₊ : puissance effacée par le client c au pas t [MW]
 - $δ[c,t]$ ∈ {0,1} : activation du client c au pas t
 
-**Objectif** : min Σ ( C_act[c]·x[c,t]·Δt + f[c,t]·δ[c,t] )
+**Objectif** : min Σ ( C^{act}_{c,t}·x[c,t]·Δt + f[c,t]·δ[c,t] )
 
 avec :
-- $C^{act}_{c,t}$ [€/MWh] — **coût variable de compensation** versé au client c proportionnellement à l'énergie effacée. Négocié bilatéralement, supposé stationnaire en v1.
+- $C^{act}_{c}$ [€/MWh] — **coût variable de compensation** versé au client c proportionnellement à l'énergie effacée. Négocié bilatéralement, supposé stationnaire en v1.
 - $f[c,t]$ [€] — **coût fixe d'activation** payé dès que δ[c,t]=1, indépendamment du volume effacé. Modélise les frais de télécommande, l'usure des équipements, et le "crédit de sollicitation" (risque de désengagement client en cas d'activations trop fréquentes). Différencié par (client, pas) pour permettre une modulation contextuelle.
 
 **Contraintes**
@@ -58,7 +58,7 @@ avec :
 - C4 — Couplage activation/effacement (big-M = borne naturelle)
 - C5 — Seuil minimal d'effacement si activé
 
-> Les justifications approfondies des choix de modélisation — choix MILP plutôt que LP, périmètre à une seule EDE sans distinction de profilage, absence du revenu NEBCO et du versement fournisseur dans l'objectif, Position A sur le rebond, bilan C3 sur horizon court vs période glissante, hypothèses exogènes sur baseline et gisement — seront développées dans une note technique.
+> Les justifications approfondies des choix de modélisation — choix MILP plutôt que LP, périmètre à une seule EDE sans distinction de profilage, absence du revenu NEBCO et du versement fournisseur dans l'objectif, Position A sur le rebond, bilan C3 sur horizon court vs période glissante, hypothèses exogènes sur baseline et gisement — sont développées dans la [note technique](docs/note-technique.md).
 
 ## Structure du projet
 
@@ -83,7 +83,7 @@ nebco-dispatch/
 ## Installation et utilisation
 
 ```bash
-git clone https://github.com/<user>/nebco-dispatch.git
+git clone https://github.com/paulmoma/nebco-dispatch.git
 cd nebco-dispatch
 pip install -r requirements.txt
 
@@ -100,7 +100,7 @@ python -m unittest discover tests
 
 **Dépendances** : [PuLP](https://coin-or.github.io/pulp/) (≥ 2.7) pour la modélisation MILP, avec le solveur [CBC](https://github.com/coin-or/Cbc) embarqué par défaut.
 
-Exemple d'utilisation programmatique :
+Exemple d'utilisation :
 
 ```python
 from src import Client, Consigne, Portfolio, build_model, solve, print_full_report
@@ -177,5 +177,5 @@ Toutes les propositions reçues ont fait l'objet d'une relecture critique. L'IA 
 ## Références
 
 - **Cadre légal** — Code de l'énergie, articles [L.271-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000031067893) à [L.271-3](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000043214830) (définition de l'effacement, agrément de l'opérateur, régime de versement) et articles [R.271-1](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000033056210) à [R.271-2](https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000033056218) (modalités techniques).
-- **Règles opérationnelles** — CRE, *Délibération n°2025-199 portant approbation  des règles NEBCO*, juillet 2025.
+- **Règles opérationnelles** — CRE, *Délibération n°2025-199 portant approbation des règles NEBCO*, juillet 2025.
 - **Mise en œuvre** — RTE, *Règles de Marché — Chapitre 5 : NEBCO*, version en vigueur au 01/09/2025 — en particulier art. 5.F.
