@@ -132,13 +132,19 @@ $$
 \pi = \underbrace{\sum_t \lambda_t \cdot E_t^{retenu}}_{\text{vente de l'effacement}} - \underbrace{\sum_t B \cdot E_t^{eff}}_{\text{compensation fournisseurs}} - \underbrace{\sum_{c,t} \left( C_c^{act} \cdot x_{c,t} \cdot \Delta t + f_{c,t} \cdot \delta_{c,t} \right)}_{\text{coût dispatch interne}}- \underbrace{\sum_t \mu_t \cdot (E_t^{eff}-E_t^{retenu})}_{\text{pénalités}}
 $$
 
-avec $E_t^{eff}=\Delta t \cdot \sum_c x_{c,t}$ l'énergie totale effacée par l'OE sur le pas de temps $t$. Les quatre termes sont, dans l'ordre : la **vente de l'effacement** sur les marchés au prix spot $\lambda_t$ pour le volume $E_t^{retenu}$ retenu par RTE ; la **compensation versée aux fournisseurs** des sites effacés au barème forfaitaire $B$ fixé par la CRE (€/MWh), proportionnelle au volume effacé ; le **coût interne du dispatch**, pilotable par l'OE via les décisions $x_{c,t}$ et $\delta_{c,t}$ ; les **pénalités** sur les écarts de livraison (mécanisme de déséquilibre du marché de l'électricité, non imposé directement par NEBCO mais réel économiquement).
+avec $E_t^{eff}=\Delta t \cdot \sum_c x_{c,t}$ l'énergie totale effacée par l'OE sur le pas de temps $t$. 
+
+Les quatre termes sont, dans l'ordre : 
+- la **vente de l'effacement** sur les marchés au prix spot $\lambda_t$ pour le volume $E_t^{retenu}$ retenu par RTE ; 
+- la **compensation versée aux fournisseurs** des sites effacés au barème forfaitaire $B$ fixé par la CRE (€/MWh), proportionnelle au volume effacé ; 
+- le **coût interne du dispatch**, pilotable par l'OE via les décisions $x_{c,t}$ et $\delta_{c,t}$ ; 
+- les **pénalités** sur les écarts de livraison (mécanisme de déséquilibre du marché de l'électricité, non imposé directement par NEBCO mais réel économiquement).
 
 Sous C1 en égalité, $E_t^{eff} = E_t^{retenu}$ pour tout $t$. Trois des quatre termes deviennent alors **constants vis-à-vis des variables de décision** :
 
 - $\lambda_t$ et $E_t^{retenu}$ sont des entrées figées par le Niveau 1 — la vente de l'effacement est un revenu fixe.
 - Le versement fournisseur $B \cdot E_t^{retenu} \cdot \Delta t$ ne dépend que du volume global par pas, pas de la répartition $x_{c,t}$ entre clients : deux dispatches livrant le même $E_t^{retenu}$ paient strictement le même versement.
-- Le terme de pénalité $\mu_t \cdot (E_t^{eff} - E_t^{retenu})$ s'annule trivialement.
+- Le terme de pénalité $\mu_t \cdot (E_t^{eff} - E_t^{retenu})$ s'annule.
 
 Ces trois termes disparaissent par différentiation dans le problème d'optimisation :
 
@@ -146,7 +152,7 @@ $$
 \arg\max_{x,\delta} \pi = \arg\min_{x,\delta} \sum_{c,t} \left( C_c^{act} \cdot x_{c,t} \cdot \Delta t + f_{c,t} \cdot \delta_{c,t} \right)
 $$
 
-Minimiser le coût de dispatch interne revient donc à maximiser le profit complet, sans perte d'optimalité. L'objectif obtenu est en outre directement interprétable comme le coût que l'OE doit débourser pour honorer sa consigne, et n'introduit aucune dépendance aux paramètres de marché ($\lambda_t$, $B$) dans le code du Niveau 2.
+**Minimiser le coût de dispatch interne revient donc à maximiser le profit complet**, sans perte d'optimalité. L'objectif obtenu est en outre directement interprétable comme le coût que l'OE doit débourser pour honorer sa consigne, et n'introduit aucune dépendance aux paramètres de marché ($\lambda_t$, $B$) dans le code du Niveau 2.
 
 ### 3.3 Conditions et portée
 
