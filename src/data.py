@@ -72,8 +72,8 @@ class Consigne:
         Énergie à livrer par pas [MWh]. Longueur = T.
     delta_t : float
         Durée d'un pas [h]. Pas demi-horaire NEBCO → 0.5.
-    e_max_agr : float
-        Plafond réglementaire NEBCO (art. 5.E.1.3.2.2) [MW].
+    P_max_agr : float
+        Plafond réglementaire NEBCO [MW].
     labels_temps : list of str
         Étiquettes lisibles pour l'affichage (ex: "18h00").
     """
