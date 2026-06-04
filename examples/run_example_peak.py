@@ -38,7 +38,7 @@ def build_peak_portfolio() -> Portfolio:
             taux_rebond=[0.92, 0.94, 0.95, 0.97, 0.98, 0.97, 0.95, 0.92],
         ),
         Client(
-            label="Véhicule Électriques entreprise",
+            label="Véhicules Électriques",
             conso_ref=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 1.5, 0.5],
             pmax=    [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.0, 0.3],
             e_min=   [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.1, 0.0],
