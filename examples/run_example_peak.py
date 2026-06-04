@@ -11,7 +11,8 @@ Lancer depuis la racine :
 """
 
 from src import Client, Consigne, Portfolio, build_model, print_full_report, solve
-
+from src.duality import build_modelLP, solveLP
+from examples.plot_dual import plot_marginal_costs
 
 def build_peak_portfolio() -> Portfolio:
     """Portefeuille de 6 clients sur une pointe hivernale 16h-19h30."""
@@ -27,7 +28,7 @@ def build_peak_portfolio() -> Portfolio:
             taux_rebond=[1.08, 1.10, 1.12, 1.15, 1.15, 1.12, 1.10, 1.08],
         ),
         Client(
-            label="Résidentiel chauffage",
+            label="Chauffage résidentiel",
             conso_ref=[5.0, 5.5, 6.5, 7.5, 8.0, 7.5, 6.5, 5.5],
             pmax=    [2.5, 3.0, 3.5, 4.0, 4.0, 3.5, 3.0, 2.5],
             e_min=   [0.3] * 8,
@@ -37,7 +38,7 @@ def build_peak_portfolio() -> Portfolio:
             taux_rebond=[0.92, 0.94, 0.95, 0.97, 0.98, 0.97, 0.95, 0.92],
         ),
         Client(
-            label="VE flotte entreprise",
+            label="Véhicule Électriques entreprise",
             conso_ref=[2.0, 2.0, 2.0, 2.0, 2.0, 2.0, 1.5, 0.5],
             pmax=    [1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.0, 0.3],
             e_min=   [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.1, 0.0],
@@ -57,7 +58,7 @@ def build_peak_portfolio() -> Portfolio:
             taux_rebond=[0.40, 0.42, 0.44, 0.46, 0.48, 0.46, 0.44, 0.42],
         ),
         Client(
-            label="Industriel process",
+            label="Process Industriel",
             conso_ref=[4.5, 4.5, 4.0, 4.0, 3.5, 3.5, 2.5, 1.5],
             pmax=    [2.5, 2.5, 2.0, 2.0, 1.5, 1.5, 1.0, 0.5],
             e_min=   [0.5, 0.5, 0.4, 0.4, 0.3, 0.3, 0.2, 0.1],
@@ -92,9 +93,26 @@ def build_peak_consigne() -> Consigne:
 def main() -> None:
     portfolio = build_peak_portfolio()
     consigne = build_peak_consigne()
+
+    # ── MILP (existant) ──────────────────────────────────────────────────
     prob, variables = build_model(portfolio, consigne)
     solution = solve(prob, variables)
     print_full_report(solution, portfolio, consigne)
+
+    # ── Relaxation LP (nouveau) ──────────────────────────────────────────
+    prob_lp = build_modelLP(portfolio, consigne, solution.delta)
+    dual = solveLP(prob_lp, portfolio, consigne)
+
+    print("\n── Coûts marginaux internes (relaxation LP) ─────────────────")
+    print(f"  {'Pas':<10} {'pi_c1 [€/MWh]':>15}")
+    print(f"  {'-'*26}")
+    for t, pi in enumerate(dual.pi_c1):
+        label = consigne.labels_temps[t] if consigne.labels_temps else f"t={t}"
+        print(f"  {label:<10} {pi:>15.2f}")
+
+    print(f"\n  pi_c3 (bilan rebond) : {dual.pi_c3:.4f}")
+
+    plot_marginal_costs(dual, consigne, portfolio)
 
 
 if __name__ == "__main__":
