@@ -4,8 +4,7 @@
 
 *Projet personnel — appropriation des mécanismes d'effacement et de leur récente refonte sous NEBCO, à travers la modélisation du problème de dispatch interne d'un opérateur d'effacement.*
 
-Prototype Python/MILP qui modélise comment un opérateur d'effacement répartit, entre ses clients, un volume de réduction de consommation vendu à RTE sur le marché NEBCO (en vigueur depuis le 01/09/2025). Minimisation du coût interne sous contraintes physiques et réglementaires, formulé avec PuLP + solveur CBC. Ce repo couvre le dispatch interne post-notification RTE (Niveau 2 de la chaîne décisionnelle d'un opérateur d'effacement).
-
+Prototype Python/MILP qui modélise comment un opérateur d'effacement répartit, entre ses clients, un volume de réduction de consommation vendu à RTE sur le marché NEBCO (en vigueur depuis le 01/09/2025). Minimisation du coût interne sous contraintes physiques et réglementaires, formulé avec PuLP + solveur CBC. Ce projet modéliste le dispatch interne post-notification RTE : quand RTE retient une offre d'effacement, comment l'opérateur décide quels clients activer, dans quelle mesure, et à quel moment — en minimisant son coût interne tout en respectant les contraintes réglementaires NEBCO.
 
 ## Contexte et vocabulaire NEBCO
 
