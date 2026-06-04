@@ -37,7 +37,7 @@ def _energy_stats(portfolio, consigne, solution):
     return e_eff, e_reb, r_moy
 
 
-def plot_dispatch(output_path: str = "dispatch_peak.png") -> None:
+def plot_dispatch(output_path: str = "docs/figures/dispatch_peak.png") -> None:
     """Dispatch empilé par client avec consigne RTE."""
     portfolio, consigne, solution = _solve()
 
@@ -79,7 +79,7 @@ def plot_dispatch(output_path: str = "dispatch_peak.png") -> None:
         plt.close()
 
 
-def plot_cost_vs_rebound(output_path: str = "cost_vs_rebound.png") -> None:
+def plot_cost_vs_rebound(output_path: str = "docs/figures/cost_vs_rebound.png") -> None:
     """Scatter coût variable vs taux de rebond moyen. Taille des bulles = énergie effacée."""
     portfolio, consigne, solution = _solve()
 
@@ -93,14 +93,14 @@ def plot_cost_vs_rebound(output_path: str = "cost_vs_rebound.png") -> None:
     e_max = max(e for e in e_eff if e > 1e-6)
     S_MAX = 600.0
 
-    label_offsets = {
-        "Chauffe-eau":           ( 0.03,  3.5,  "left"),
-        "Résidentiel chauffage": (-0.06,  3.5,  "right"),
-        "VE flotte entreprise":  ( 0.03,  3.0,  "left"),
-        "Chambre froide":        ( 0.03,  0.0,  "left"),
-        "Industriel process":    ( 0.03,  0.0,  "left"),
-        "Datacenter":            ( 0.03,  0.0,  "left"),
-    }
+    label_offsets = {c.label: (0.03, 0.0, "left") for c in clients}
+
+    # Ajustements manuels pour éviter les chevauchements
+    label_offsets.update({
+        clients[0].label: ( 0.03,  3.5, "left"),   # Chauffe-eau
+        clients[1].label: (-0.06,  3.5, "right"),   # Chauffage résidentiel
+        clients[2].label: ( 0.03,  3.0, "left"),    # VE flotte
+    })
 
     XLIM, YLIM = (0.0, 1.50), (0, 50)
 
@@ -180,7 +180,7 @@ def plot_cost_vs_rebound(output_path: str = "cost_vs_rebound.png") -> None:
         plt.close()
 
 
-def plot_client_profile(c_focus: int = 0, output_path: str = "profile_client.png") -> None:
+def plot_client_profile(c_focus: int = 0, output_path: str = "docs/figures/profile_client.png") -> None:
     """Profil d'effacement d'un client sur l'horizon."""
     portfolio, consigne, solution = _solve()
 
