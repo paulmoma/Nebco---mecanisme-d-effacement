@@ -139,6 +139,13 @@ Le modèle choisit ses clients selon deux critères couplés : leur **coût vari
 
 Le chauffe-eau est l'un des clients les plus sollicités sur ce scénario (activé sur les 8 pas, 7.91 MWh effacés). Son taux de rebond individuel atteint 1.12 — donc **r > 1 au niveau du client seul**. C'est admissible : la contrainte C3 du modèle s'applique à la maille EDE, pas client par client. Le rebond local est compensé par les clients à faible rebond (chambre froide notamment) dans le bilan agrégé.
 
+### Coûts marginaux internes — relaxation LP
+
+![Coût marginal interne](docs/figures/marginal_costs.png)
+
+Le coût marginal interne $\pi_{C1}[t]$ représente le coût supplémentaire d'un MWh de consigne RTE au pas $t$, à plan d'activation $\delta^*$ fixé. 
+Il reflète le coût variable du client marginal, corrigé par le multiplicateur de rebond $\pi_{C3} (ici −20.59 €/MWh sur le scénario de pointe hivernale): les clients à fort rebond (Chauffe-eau) voient leur coût effectif augmenter, les clients à faible rebond (Chambre froide) le voient diminuer.
+
 ## Limites de la v1
 
 Ce prototype privilégie la lisibilité de la formulation sur la fidélité opérationnelle. Les principales limites, documentées en détail dans la note technique :
