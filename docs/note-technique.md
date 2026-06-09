@@ -15,7 +15,7 @@ Cette note rappelle succinctement le cadre réglementaire du mécanisme NEBCO et
 4. [Choix de la classe de modèle : LP vs MILP](#4-choix-de-la-classe-de-modèle--lp-vs-milp)
 5. [Modélisation du rebond : taux scalaire vs matrice impulsionnelle](#5-modélisation-du-rebond--taux-scalaire-vs-matrice-impulsionnelle)
 6. [Bilan énergétique C3 : horizon local vs période glissante NEBCO](#6-bilan-énergétique-c3--horizon-local-vs-période-glissante-nebco)
-7. [Consommations de références et gisement, données supposées connues](#7-consommations-de-référence-et-gisement-données-supposées-connues)
+7. [Consommations de référence et gisement, données supposées connues](#7-consommations-de-référence-et-gisement-données-supposées-connues)
 8. [Synthèse des perspectives](#8-synthèse-des-perspectives)
 
 ___
@@ -290,7 +290,7 @@ Le modèle v1 applique C3 sur l'horizon d'optimisation court (3 heures), ce qui 
 
 ___
 
-## 7. Consommation de référence et gisement, données supposées connues
+## 7. Consommations de référence et gisement, données supposées connues
 
 Deux entrées majeures du modèle sont supposées connues, alors qu'elles sont l'objet de sous-problèmes non triviaux :
 
