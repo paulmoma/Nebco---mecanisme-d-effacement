@@ -1,10 +1,10 @@
 ---
-title: "Note technique — Choix de modélisation du dispatch NEBCO"
+title: "Note technique : choix de modélisation du dispatch NEBCO"
 author: "Paul Molaro-Maqua"
 date: "11/05/2026"
 ---
 
-# Note technique — Choix de modélisation du dispatch NEBCO
+# Note technique : choix de modélisation du dispatch NEBCO
 
 Cette note rappelle succinctement le cadre réglementaire du mécanisme NEBCO et développe les choix de modélisation. Elle apporte également les justifications qui n'ont pas leur place dans le README ; elle le complète sans le dupliquer.
 
@@ -22,9 +22,9 @@ ___
 
 ## 1. Cadre réglementaire du NEBCO et décomposition du problème
 
-Le mécanisme NEBCO (Notification d'Échanges de Blocs de Consommation) permet à des Opérateurs d'Effacement (OE) agréés par RTE de valoriser des effacements de consommation sur les marchés de l'énergie — la veille pour le lendemain et en infrajournalier. Il succède au mécanisme NEBEF (Notification d'Échanges de Blocs d'Effacement), en vigueur depuis 2014 et s'en distingue principalement par la possibilité de valoriser également les modulations à la hausse dans le cadre de décalages de consommation (reports ou anticipations de consommation).
+Le mécanisme NEBCO (Notification d'Échanges de Blocs de Consommation) permet à des Opérateurs d'Effacement (OE) agréés par RTE de valoriser des effacements de consommation sur les marchés de l'énergie, par exemple la veille pour le lendemain et en infrajournalier. Il succède au mécanisme NEBEF (Notification d'Échanges de Blocs d'Effacement), en vigueur depuis 2014 et s'en distingue principalement par la possibilité de valoriser également les modulations à la hausse dans le cadre de décalages de consommation (reports ou anticipations de consommation).
 
-Concrètement, le fonctionnement est le suivant : l'Opérateur d'Effacement (OE) contractualise des clients capables de réduire ponctuellement leur consommation (industriels, gestionnaires de chauffe-eau, opérateurs de recharge de véhicule électrique, etc.), organisés en **Entités d'Effacement (EDE)** — unités de gestion regroupant des sites de soutirage au sein du périmètre de l'OE. Il construit des offres d'effacement qu'il soumet sur les marchés de l'énergie ou sur le mécanisme d'ajustement de RTE — la réduction de soutirage étant traitée, du point de vue du réseau, comme équivalente à une injection de puissance. Lorsqu'une offre est retenue, RTE notifie à l'OE un programme d'effacement — un profil de puissance à livrer sur un horizon donné. Ce volume est valorisé sur les marchés de l'énergie (bourse EPEX Spot ou gré-à-gré). L'OE doit alors activer ses clients pour délivrer ce volume, tout en respectant les contraintes du cadre NEBCO (bilan énergétique, plafond de capacité, versement aux fournisseurs des sites effacés). Le contrôle du volume effectivement réalisé est assuré a posteriori par RTE sur la base de courbes de référence.
+Concrètement, le fonctionnement est le suivant : l'Opérateur d'Effacement (OE) contractualise des clients capables de réduire ponctuellement leur consommation (industriels, gestionnaires de chauffe-eau, opérateurs de recharge de véhicule électrique, etc.), organisés en **Entités d'Effacement (EDE)**, unités de gestion regroupant des sites de soutirage au sein du périmètre de l'OE. Il construit des offres d'effacement qu'il soumet sur les marchés de l'énergie ou sur le mécanisme d'ajustement de RTE, la réduction de soutirage étant traitée, du point de vue du réseau, comme équivalente à une injection de puissance. Lorsqu'une offre est retenue, RTE notifie à l'OE un programme d'effacement, un profil de puissance à livrer sur un horizon donné. Ce volume est valorisé sur les marchés de l'énergie (bourse EPEX Spot ou gré-à-gré). L'OE doit alors activer ses clients pour délivrer ce volume, tout en respectant les contraintes du cadre NEBCO (bilan énergétique, plafond de capacité, versement aux fournisseurs des sites effacés). Le contrôle du volume effectivement réalisé est assuré a posteriori par RTE sur la base de courbes de référence.
 
 ### Décomposition en niveaux de décision
 
@@ -39,9 +39,9 @@ Niveau 3  │ Pilotage temps réel des équipements                 ── hors 
 
 Chaque niveau prend en entrée les sorties du précédent. La chaîne boucle : le réalisé mesuré au Niveau 3 alimente le Niveau 0 (mise à jour des baselines et du gisement), qui conditionne les offres du Niveau 1. Un dispatch qui ne permet pas de livrer le volume retenu dégrade l'indicateur de fiabilité de l'OE [NEBCO, art. 5.E.1.3.2.2]. 
 
-C'est le problème de **dispatch interne**, le niveau 2 — ventiler le programme retenu entre les clients du portefeuille — qui est l'objet du présent projet.
+C'est le problème de **dispatch interne**, le niveau 2, ventiler le programme retenu entre les clients du portefeuille, qui est l'objet du présent projet.
 
-Dans le problème réel, les niveaux 1 et 2 sont couplés : le coût interne du dispatch conditionne le prix auquel l'OE peut soumettre ses offres — un OE qui sous-estime ses coûts s'expose à des dispatches déficitaires, un OE qui les surestime n'est pas retenu. Le modèle v1 rompt ce couplage par hypothèse : le programme retenu $E_t^{retenu}$ est fixé et doit être livré intégralement (caractérisé par la contrainte C1 en égalité, voir ci-dessous). Le Niveau 2 se réduit alors à un problème de minimisation de coût, indépendant des paramètres de marché — les conditions de cette simplification sont détaillées en section 3.
+Dans le problème réel, les niveaux 1 et 2 sont couplés : le coût interne du dispatch conditionne le prix auquel l'OE peut soumettre ses offres, un OE qui sous-estime ses coûts s'expose à des dispatches déficitaires, un OE qui les surestime n'est pas retenu. Le modèle v1 rompt ce couplage par hypothèse : le programme retenu $E_t^{retenu}$ est fixé et doit être livré intégralement (caractérisé par la contrainte C1 en égalité, voir ci-dessous). Le Niveau 2 se réduit alors à un problème de minimisation de coût, indépendant des paramètres de marché, les conditions de cette simplification sont détaillées en section 3.
 
 ___
 
@@ -63,13 +63,13 @@ Le prototype v1 considère **un Opérateur d'Effacement gérant un Périmètre d
 
 **La typologie de l'EDE (Télérelevée ou Profilée) n'est pas distinguée.** Cette distinction est pourtant importante dans NEBCO : elle conditionne la méthode de contrôle du réalisé (mesure directe des courbes de charge pour les sites télérelevés, méthode des panels pour les sites profilés), et donc la façon dont la baseline (courbe de consommation de référence) et le rebond sont reconstruits. En ignorant cette distinction, le modèle traite tous les clients comme s'ils étaient télérelevés avec mesure directe.
 
-La distinction Télérelevée/Profilée a des conséquences qui dépassent le Niveau 2 et touchent directement le Niveau 1 (offre sur le marché). En effet, le **barème de versement fournisseur** est **différencié par typologie d'EDE** : un barème pour les sites télérelevés et un pour les sites profilés, avec des formules propres à chaque catégorie. La typologie d'EDE est fortement corrélée avec la puissance souscrite (les sites de puissance > 36 kVA sont en pratique télérelevés)— ce qui distingue formellement les deux catégories est la modalité de mesure, pas le seuil tarifaire. Les barèmes sont publiés par RTE et approuvés par la CRE [CRE-2025-275].
+La distinction Télérelevée/Profilée a des conséquences qui dépassent le Niveau 2 et touchent directement le Niveau 1 (offre sur le marché). En effet, le **barème de versement fournisseur** est **différencié par typologie d'EDE** : un barème pour les sites télérelevés et un pour les sites profilés, avec des formules propres à chaque catégorie. La typologie d'EDE est fortement corrélée avec la puissance souscrite (les sites de puissance > 36 kVA sont en pratique télérelevés), ce qui distingue formellement les deux catégories est la modalité de mesure, pas le seuil tarifaire. Les barèmes sont publiés par RTE et approuvés par la CRE [CRE-2025-275].
 
-En conséquence, lorsque l'OE construit son offre au Niveau 1, il doit anticiper le versement fournisseur en fonction de la composition de ses EDE — une EDE Profilée résidentielle n'a pas le même barème qu'une EDE Télérelevée industrielle. Cette différenciation n'a aucun impact sur le Niveau 2 (le versement est constant par rapport aux variables de dispatch, cf. section 3), mais elle conditionne la marge nette que l'OE peut espérer, et donc le prix auquel il peut soumettre ses offres d'effacement.
+En conséquence, lorsque l'OE construit son offre au Niveau 1, il doit anticiper le versement fournisseur en fonction de la composition de ses EDE : une EDE Profilée résidentielle n'a pas le même barème qu'une EDE Télérelevée industrielle. Cette différenciation n'a aucun impact sur le Niveau 2 (le versement est constant par rapport aux variables de dispatch, cf. section 3), mais elle conditionne la marge nette que l'OE peut espérer, et donc le prix auquel il peut soumettre ses offres d'effacement.
 
 Conséquences pour la modélisation réelle :
 
-- **Multi-EDE** : un OE peut avoir plusieurs EDE (une par typologie, ou par zone géographique pour le télérelevé). Chacune a son propre bilan énergétique à vérifier. L'extension naturelle serait de répliquer une contrainte de bilan énergétique C3 par EDE et de partitionner la consigne RTE entre EDE — ce qui revient à résoudre N sous-problèmes de dispatch couplés par le plafond OE global (C2).
+- **Multi-EDE** : un OE peut avoir plusieurs EDE (une par typologie, ou par zone géographique pour le télérelevé). Chacune a son propre bilan énergétique à vérifier. L'extension naturelle serait de répliquer une contrainte de bilan énergétique C3 par EDE et de partitionner la consigne RTE entre EDE, ce qui revient à résoudre N sous-problèmes de dispatch couplés par le plafond OE global (C2).
 - **Périodes de bilan différentes** : les périodes de contrôle du bilan C3 sont typiquement différentes pour Télérelevé et Profilé (voir section 6). Un modèle multi-EDE devrait respecter des périodes distinctes par EDE.
 
 Cette limite ouvre la voie à une extension multi-EDE et à un bilan sur période glissante, identifiés dans la section 8.
@@ -124,7 +124,7 @@ En pratique, C2 est rarement active si on contraint la livraison stricte de la c
 
 ### 3.2 Du profit complet à la minimisation de coût
 
-L'objectif retenu en 3.1 — minimiser le coût interne de dispatch — peut paraître simpliste, puisque l'OE cherche en réalité à maximiser son profit. On montre ici que sous l'hypothèse de livraison stricte (C1 en égalité), les deux problèmes sont mathématiquement équivalents.
+L'objectif retenu en 3.1  (minimiser le coût interne de dispatch) peut paraître simpliste, puisque l'OE cherche en réalité à maximiser son profit. On montre ici que sous l'hypothèse de livraison stricte (C1 en égalité), les deux problèmes sont mathématiquement équivalents.
 
 Sur l'horizon d'un programme d'effacement retenu, le profit $\pi$ de l'OE s'écrit :
 
@@ -142,7 +142,7 @@ Les quatre termes sont, dans l'ordre :
 
 Sous C1 en égalité, $E_t^{eff} = E_t^{retenu}$ pour tout $t$. Trois des quatre termes deviennent alors **constants vis-à-vis des variables de décision** :
 
-- $\lambda_t$ et $E_t^{retenu}$ sont des entrées figées par le Niveau 1 — la vente de l'effacement est un revenu fixe.
+- $\lambda_t$ et $E_t^{retenu}$ sont des entrées figées par le Niveau 1 : la vente de l'effacement est un revenu fixe.
 - Le versement fournisseur $B \cdot E_t^{retenu} \cdot \Delta t$ ne dépend que du volume global par pas, pas de la répartition $x_{c,t}$ entre clients : deux dispatches livrant le même $E_t^{retenu}$ paient strictement le même versement.
 - Le terme de pénalité $\mu_t \cdot (E_t^{eff} - E_t^{retenu})$ s'annule.
 
@@ -168,7 +168,7 @@ où $L_t = \sum_c x_{c,t}$ est le volume livré et $s_t = E_t^{retenu} - L_t$ le
 
 2. **Le plan d'effacement retenu $E_t^{retenu}$ est fixé.** Si on co-optimisait Niveau 1 et Niveau 2 (offre et dispatch simultanés), revenu et versement redeviendraient variables.
 
-S'y ajoute une hypothèse de périmètre, propre au modèle v1 plutôt que condition mathématique : le barème $B$ est uniforme sur toute l'EDE. C'est automatiquement vrai ici puisqu'on ne considère qu'une seule EDE (cf. section 2). Une extension multi-EDE devrait sommer correctement les versements en différenciant $B$ par typologie Télérelevée/Profilée — l'équivalence reste valable à l'intérieur de chaque EDE, mais l'objectif global devient une somme pondérée des coûts internes par EDE.
+S'y ajoute une hypothèse de périmètre, propre au modèle v1 plutôt que condition mathématique : le barème $B$ est uniforme sur toute l'EDE. C'est automatiquement vrai ici puisqu'on ne considère qu'une seule EDE (cf. section 2). Une extension multi-EDE devrait sommer correctement les versements en différenciant $B$ par typologie Télérelevée/Profilée, l'équivalence reste valable à l'intérieur de chaque EDE, mais l'objectif global devient une somme pondérée des coûts internes par EDE.
 
 ___
 
@@ -200,9 +200,9 @@ $$
 
 Le qualificatif *mixte* désigne précisément la coexistence des variables continues et entières. Cette extension change la nature du problème :
 
-- Le domaine admissible n'est plus convexe — c'est un ensemble discret de points dans un polyèdre — et les propriétés de la section 4.1 ne sont plus valables : il peut exister des optimums locaux non globaux, et la dualité forte ne tient plus en général.
+- Le domaine admissible n'est plus convexe (c'est un ensemble discret de points dans un polyèdre) et les propriétés de la section 4.1 ne sont plus valables : il peut exister des optimums locaux non globaux, et la dualité forte ne tient plus en général.
 - La résolution repose sur des algorithmes de type *branch-and-bound* ou *branch-and-cut*, qui énumèrent intelligemment les combinaisons de valeurs entières en s'appuyant sur des **relaxations LP** (on remplace $y \in \{0,1\}^p$ par $y \in [0,1]^p$) pour calculer des bornes et élaguer l'arbre de recherche.
-- Le problème est NP-difficile dans le cas général, mais les solveurs modernes — comme CBC (COIN-OR Branch and Cut), embarqué par défaut avec PuLP — résolvent efficacement en pratique des instances structurées de taille industrielle.
+- L'introduction de variables entières augmente fortement la difficulté de résolution par rapport à un programme linéaire classique. La résolution est alors confiée à un solveur MILP tel que CBC.
 
 En contrepartie de la flexibilité de modélisation, on perd l'analyse duale propre du LP.
 
@@ -212,11 +212,11 @@ Plusieurs aspects du problème de dispatch sont **intrinsèquement discrets** et
 
 - **Coût fixe d'activation** (sollicitation télécom, usure, désagrément client) : charge déclenchée dès lors qu'on active le client, indépendante du volume effacé. Cela se modélise avec une variable binaire $\delta_{c,t}$ : $\delta_{c,t} = 1$ si le client est activé au pas $t$, $\delta_{c,t} = 0$ sinon. C'est cette variable qui distingue le cas « client non sollicité » ($x = 0$, $\delta = 0$) du cas « client sollicité à un certain niveau » ($x > 0$, $\delta = 1$).
 - **Seuil minimal d'effacement si activé** : un industriel ne peut pas répondre à un ordre de 50 kW alors qu'il a un process à 500 kW. La contrainte disjonctive « $x = 0$ ou $x \geq e_{min}$ » se formule naturellement avec $x \geq e_{min} \cdot \delta$ couplée à $x \leq ub \cdot \delta$.
-- **Contraintes inter-temporelles** (extension envisagée) : durée minimale d'effacement, temps de repos entre activations, nombre maximal de sollicitations par client — toutes entières par nature.
+- **Contraintes inter-temporelles** (extension envisagée) : durée minimale d'effacement, temps de repos entre activations, nombre maximal de sollicitations par client.
 
-Tenter de modéliser ces aspects en LP pur revient à les relâcher : lisser les coûts fixes sur le volume, ignorer les seuils. On produit alors des dispatches physiquement irréalistes — un industriel activé à 10 % de son seuil minimal, par exemple — et des coûts sous-estimés.
+Tenter de modéliser ces aspects en LP pur revient à les relâcher : lisser les coûts fixes sur le volume, ignorer les seuils. On produit alors des dispatches physiquement irréalistes, par exemple un industriel activé à 10 % de son seuil minimal, et des coûts sous-estimés.
 
-Le choix du MILP est donc un arbitrage : on perd la dualité forte (les binaires cassent la convexité), mais on conserve une formulation fidèle au problème physique et contractuel. Le prototype utilise CBC (COIN-OR Branch and Cut), solveur open-source embarqué par défaut avec PuLP, suffisant pour les exemples de la taille considérée ici — le scénario à 6 clients × 8 pas de temps se résout en une fraction de seconde. Pour des portefeuilles industriels (plusieurs centaines de clients, horizon journalier au pas demi-horaire), un solveur commercial (Gurobi, CPLEX) ou plus récent (HiGHS) serait plus indiqué.
+Le choix du MILP est donc un arbitrage : on perd la dualité forte (les binaires cassent la convexité), mais on conserve une formulation fidèle au problème physique et contractuel. Le prototype utilise CBC (COIN-OR Branch and Cut), solveur open-source embarqué par défaut avec PuLP, suffisant pour les exemples de la taille considérée ici (le scénario à 6 clients × 8 pas de temps se résout en une fraction de seconde). Pour des portefeuilles industriels (plusieurs centaines de clients, horizon journalier au pas demi-horaire), un solveur commercial (Gurobi, CPLEX) ou plus récent (HiGHS) serait plus indiqué.
 
 ### 4.4 Récupération partielle de l'analyse duale
 
@@ -240,7 +240,7 @@ $$
 rebond_{c,t} = r_{c,t} \cdot x_{c,t} \cdot \Delta t
 $$
 
-Ce coefficient capture l'**ampleur** du rebond mais pas son **timing**. Le rebond est supposé hors horizon d'optimisation — c'est-à-dire qu'il se produit après la fenêtre considérée par le modèle. C'est cohérent avec le fait qu'on utilise $r_{c,t}$ uniquement dans C3 (bilan global), jamais dans C1 (livraison par pas).
+Ce coefficient capture l'**ampleur** du rebond mais pas son **timing**. Le rebond est supposé hors horizon d'optimisation, c'est-à-dire qu'il se produit après la fenêtre considérée par le modèle. C'est cohérent avec le fait qu'on utilise $r_{c,t}$ uniquement dans C3 (bilan global), jamais dans C1 (livraison par pas).
 
 Cette modélisation autorise $r > 1$ pour certains clients (chauffe-eau avec réchauffage moins efficace après coupure profonde, PAC avec grand écart thermique) pourvu que le bilan global à la maille EDE reste conforme.
 
@@ -285,7 +285,7 @@ NEBCO impose trois niveaux de contrôle de l'équilibre énergétique [CRE-2025-
 - **Bilan annuel réalisé** : RTE vérifie a posteriori, à la maille EDE, que les volumes réalisés de modulations à la hausse ne dépassent pas ceux à la baisse, sur l'année calendaire. Un bilan annuel non conforme entraîne la suspension de l'accord de participation (3 à 6 mois).
 - **Suivi mensuel** : RTE calcule des bilans et ratios mensuels à titre de surveillance. En cas de non-conformité persistante, une limitation des volumes valorisables pourra être activée.
 
-Le modèle v1 applique C3 sur l'horizon d'optimisation court (3 heures), ce qui est **significativement plus restrictif** que ces trois niveaux de contrôle. Une solution faisable au sens v1 est nécessairement faisable au sens NEBCO — le modèle sous-optimise peut-être, mais ne viole jamais la règle.
+Le modèle v1 applique C3 sur l'horizon d'optimisation court (3 heures), ce qui est **significativement plus restrictif** que ces trois niveaux de contrôle. Une solution faisable au sens v1 est nécessairement faisable au sens NEBCO, le modèle sous-optimise peut-être, mais ne viole jamais la règle.
 
 
 ___
@@ -326,9 +326,8 @@ Les choix documentés ici reflètent un arbitrage entre représentation fidèle 
 - **Contraintes inter-temporelles** : durée minimale d'effacement, temps de repos entre activations, nombre maximal de sollicitations par client. Ces contraintes sont déterminantes pour les process industriels.
 - **Rebond intra-horizon** : remplacer le taux scalaire par une matrice de réponse impulsionnelle $R_c[\tau]$, qui rendrait C1 dynamique et couplée inter-temporellement (cf. section 5.3).
 - **Multi-EDE** : répliquer C3 par EDE et gérer des périodes de bilan distinctes selon la typologie Télérelevée/Profilée (cf. section 6).
-- **Incertitude sur le gisement** : le $p^{max}_{c,t}$ réel n'est connu qu'en distribution — une approche stochastique (SAA sur scénarios) permettrait de robustifier le dispatch.
+- **Incertitude sur le gisement** : le potentiel d'effacement disponible $p^{max}_{c,t}$ peut varier par rapport aux prévisions. L'utilisation de plusieurs scénarios permettrait d'anticiper cette variabilité.
 - **Tarification interne et analyse de sensibilité** : implémentation systématique de la relaxation LP à $\delta^\ast$ pour exposer les prix fictifs des contraintes (cf. section 4.4), notamment le dual de C1 qui donne le coût marginal interne d'un MWh livré et permet de remonter au Niveau 1 pour tarifer les offres.
-
 
 ___
 

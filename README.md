@@ -1,10 +1,10 @@
-# NEBCO Dispatch — Optimisation interne d'un opérateur d'effacement
+# Dispatch NEBCO - Optimisation interne d'un opérateur d'effacement
 
 ## Abstract
 
-*Projet personnel — appropriation des mécanismes d'effacement et de leur récente refonte sous NEBCO, à travers la modélisation du problème de dispatch interne d'un opérateur d'effacement.*
+*Projet personnel : appropriation des mécanismes d'effacement et du contexte réglementaire NEBCO (Notification d'Échanges de Blocs de Consommation), à travers la modélisation du problème de dispatch interne d'un opérateur d'effacement.*
 
-Prototype Python/MILP qui modélise comment un opérateur d'effacement répartit, entre ses clients, un volume de réduction de consommation vendu à RTE sur le marché NEBCO (en vigueur depuis le 01/09/2025). Minimisation du coût interne sous contraintes physiques et réglementaires, formulé avec PuLP + solveur CBC. Ce projet modéliste le dispatch interne post-notification RTE : quand RTE retient une offre d'effacement, comment l'opérateur décide quels clients activer, dans quelle mesure, et à quel moment — en minimisant son coût interne tout en respectant les contraintes réglementaires NEBCO.
+Prototype Python/MILP qui modélise comment un opérateur d'effacement répartit, entre ses clients, un volume de réduction de consommation vendu à RTE sur le marché NEBCO (en vigueur depuis le 01/09/2025). Minimisation du coût interne sous contraintes physiques et réglementaires, formulé avec PuLP + solveur CBC. Ce projet modéliste le dispatch interne post-notification RTE : quand RTE retient une offre d'effacement, comment l'opérateur décide quels clients activer, dans quelle mesure, et à quel moment, en minimisant son coût interne tout en respectant les contraintes réglementaires NEBCO.
 
 ## Contexte et vocabulaire NEBCO
 
@@ -24,7 +24,7 @@ Opérateur d'Effacement (OE)              ← personne morale agréée par RTE
 
 L'**Entité d'Effacement (EDE)** est le périmètre contractuel regroupant des sites d'une même typologie. **Le bilan énergétique NEBCO est contrôlé à la maille EDE**, pas au niveau PE ni au niveau site.
 
-L'objectif du dispatch est de minimiser le coût interne de l'OE — compensation versée aux clients + coûts fixes d'activation — sous contraintes physiques (gisement disponible, seuils minimaux) et réglementaires (plafond OE, bilan énergétique NEBCO à la maille EDE).
+L'objectif du dispatch est de minimiser le coût interne de l'OE, compensation versée aux clients + coûts fixes d'activation, sous contraintes physiques (gisement disponible, seuils minimaux) et réglementaires (plafond OE, bilan énergétique NEBCO à la maille EDE).
 
 ## Positionnement dans la chaîne décisionnelle
 
@@ -36,7 +36,7 @@ Niveau 3  │ Pilotage temps réel des équipements                 ── hors 
 ```
 
 **Boucle de rétroaction** : le réalisé mesuré au Niveau 3 alimente en retour le Niveau 0 (mise à jour des baselines, de la fiabilité des clients, du gisement effectif), qui conditionne les offres du Niveau 1 du jour suivant.
-Un dispatch de mauvaise qualité dégrade l'indicateur de fiabilité de l'OE, ce qui resserre à son tour le plafond réglementaire (art. 5.E.1.3.2.2) — la boucle a donc un effet disciplinant direct sur l'horizon court.
+Un dispatch de mauvaise qualité dégrade l'indicateur de fiabilité de l'OE, ce qui resserre à son tour le plafond réglementaire (art. 5.E.1.3.2.2), la boucle a donc un effet disciplinant direct sur l'horizon court.
 
 ## Formulation
 
@@ -47,17 +47,17 @@ Un dispatch de mauvaise qualité dégrade l'indicateur de fiabilité de l'OE, ce
 **Objectif** : min Σ ( C^{act}_{c,t}·x[c,t]·Δt + f[c,t]·δ[c,t] )
 
 avec :
-- $C^{act}_{c}$ [€/MWh] — **coût variable de compensation** versé au client c proportionnellement à l'énergie effacée. Négocié bilatéralement, supposé stationnaire en v1.
-- $f[c,t]$ [€] — **coût fixe d'activation** payé dès que δ[c,t]=1, indépendamment du volume effacé. Modélise les frais de télécommande, l'usure des équipements, et le "crédit de sollicitation" (risque de désengagement client en cas d'activations trop fréquentes). Différencié par (client, pas) pour permettre une modulation contextuelle.
+- $C^{act}_{c}$ [€/MWh] : **coût variable de compensation** versé au client c proportionnellement à l'énergie effacée. Négocié bilatéralement, supposé stationnaire en v1.
+- $f[c,t]$ [€] : **coût fixe d'activation** payé dès que δ[c,t]=1, indépendamment du volume effacé. Modélise les frais de télécommande, l'usure des équipements, et le "crédit de sollicitation" (risque de désengagement client en cas d'activations trop fréquentes). Différencié par (client, pas) pour permettre une modulation contextuelle.
 
 **Contraintes**
-- C1 — Livraison exacte de la consigne RTE par pas
-- C2 — Plafond réglementaire OE (art. 5.E.1.3.2.2)
-- C3 — Bilan énergétique NEBCO : Σ rebond ≤ Σ effacement (maille EDE)
-- C4 — Couplage activation/effacement (big-M = borne naturelle)
-- C5 — Seuil minimal d'effacement si activé
+- C1 : Livraison exacte de la consigne RTE par pas
+- C2 : Plafond réglementaire OE (art. 5.E.1.3.2.2)
+- C3 : Bilan énergétique NEBCO : Σ rebond ≤ Σ effacement (maille EDE)
+- C4 : Couplage activation/effacement (big-M = borne naturelle)
+- C5 : Seuil minimal d'effacement si activé
 
-> Les justifications approfondies des choix de modélisation — choix MILP plutôt que LP, périmètre à une seule EDE sans distinction de profilage, absence du revenu NEBCO et du versement fournisseur dans l'objectif, Position A sur le rebond, bilan C3 sur horizon court vs période glissante, hypothèses exogènes sur baseline et gisement — sont développées dans la [note technique](docs/note-technique.md).
+> Les justifications approfondies des choix de modélisation (choix MILP plutôt que LP, périmètre à une seule EDE sans distinction de profilage, absence du revenu NEBCO et du versement fournisseur dans l'objectif, Position A sur le rebond, bilan C3 sur horizon court vs période glissante, hypothèses exogènes sur baseline et gisement) sont développées dans la [note technique](docs/note-technique.md).
 
 ## Structure du projet
 
@@ -112,13 +112,13 @@ solution = solve(prob, variables)
 print_full_report(solution, portfolio, consigne)
 ```
 
-## Exemple — scénario de pointe hivernale
+## Exemple : scénario de pointe hivernale
 
 Un opérateur d'effacement doit livrer 18.3 MWh sur l'horizon 16h-19h30 (8 pas demi-horaires) en réponse à une consigne RTE retenue sur NEBCO. Le modèle dispatche cette demande entre 6 clients du portefeuille selon leurs paramètres physiques (gisement, seuils, taux de rebond) et économiques (coût variable, coût fixe d'activation).
 
 ### Vue globale du dispatch
 
-![Dispatch NEBCO — pointe hivernale](docs/figures/dispatch_peak.png)
+![Dispatch NEBCO : pointe hivernale](docs/figures/dispatch_peak.png)
 
 La consigne RTE (en escalier noir pointillé) est suivie pas à pas par une combinaison de 4 clients activés. À 18h00, pointe à 7.6 MW : le client "Véhicule électrique" apparaît pour compléter le client "Chauffage résidentiel" saturé à sa borne supérieure. Les clients "datacenter" et "process industriel" ne sont pas activés sur ce scénario.
 
@@ -128,17 +128,17 @@ La consigne RTE (en escalier noir pointillé) est suivie pas à pas par une comb
 
 Le modèle choisit ses clients selon deux critères couplés : leur **coût variable** (axe Y) et leur **taux de rebond moyen** (axe X). Trois enseignements :
 
-- Les clients **non activés** (datacenter, industriel process, en gris) sont trop coûteux pour ce volume cible — le modèle préfère sursolliciter les clients moins chers même proches de la limite de rebond.
+- Les clients **non activés** (datacenter, industriel process, en gris) sont trop coûteux pour ce volume cible, le modèle préfère sursolliciter les clients moins chers même proches de la limite de rebond.
 - Le client **chambre froide** est activé bien que relativement coûteux (20 €/MWh) : son faible taux de rebond (0.42) permet de **compenser le rebond élevé** du chauffe-eau et de la flotte de Véhicules électriques, et de saturer C3 à 1.000 sans la violer.
 - C3 (bilan énergétique EDE) impose que le rebond total ne dépasse pas l'effacement total sur l'horizon. Ici, 18.3 / 18.3 MWh → ratio = 1.000, **bilan conforme**.
 
 ### Diagnostic au niveau d'un client : le chauffe-eau
 
-![Profil d'effacement — Chauffe-eau](docs/figures/profile_client.png)
+![Profil d'effacement : Chauffe-eau](docs/figures/profile_client.png)
 
-Le chauffe-eau est l'un des clients les plus sollicités sur ce scénario (activé sur les 8 pas, 7.91 MWh effacés). Son taux de rebond individuel atteint 1.12 — donc **r > 1 au niveau du client seul**. C'est admissible : la contrainte C3 du modèle s'applique à la maille EDE, pas client par client. Le rebond local est compensé par les clients à faible rebond (chambre froide notamment) dans le bilan agrégé.
+Le chauffe-eau est l'un des clients les plus sollicités sur ce scénario (activé sur les 8 pas, 7.91 MWh effacés). Son taux de rebond individuel atteint 1.12, donc **r > 1 au niveau du client seul**. C'est admissible : la contrainte C3 du modèle s'applique à la maille EDE, pas client par client. Le rebond local est compensé par les clients à faible rebond (chambre froide notamment) dans le bilan agrégé.
 
-### Coûts marginaux internes — relaxation LP
+### Coûts marginaux internes : relaxation LP
 
 ![Coût marginal interne](docs/figures/marginal_costs.png)
 
@@ -150,11 +150,11 @@ Il reflète le coût variable du client marginal, corrigé par le multiplicateur
 Ce prototype privilégie la lisibilité de la formulation sur la fidélité opérationnelle. Les principales limites, documentées en détail dans la note technique :
 
 - **Un OE, un PE, une seule EDE**, sans distinction de typologie Télérelevée/Profilée.
-- **C1 en égalité stricte** — la sous-livraison n'est pas autorisée, alors qu'elle est pénalisée financièrement par RTE, pas interdite.
-- **Rebond hors horizon** — taux scalaire $r[c,t]$ qui capte l'ampleur mais pas le timing du rebond.
-- **Contrainte C3 bilan énergétique sur l'horizon d'optimisation court** — plus restrictif que le bilan NEBCO réel contrôlé sur période glissante.
+- **C1 en égalité stricte** : la sous-livraison n'est pas autorisée, alors qu'elle est pénalisée financièrement par RTE, pas interdite.
+- **Rebond hors horizon** : taux scalaire $r[c,t]$ qui capte l'ampleur mais pas le timing du rebond.
+- **Contrainte C3 bilan énergétique sur l'horizon d'optimisation court** : plus restrictif que le bilan NEBCO réel contrôlé sur période glissante.
 - **Pas de contraintes inter-temporelles** par client (durée minimale, temps de repos, nombre max d'activations).
-- **Baseline et gisement exogènes** — supposés connus, alors qu'ils font chacun l'objet d'un sous-problème non trivial.
+- **Baseline et gisement exogènes** : supposés connus, alors qu'ils font chacun l'objet d'un sous-problème non trivial.
 - **Horizon fixe**, pas de redéclaration infrajournalière ; données déterministes.
 
 
