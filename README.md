@@ -29,13 +29,13 @@ L'objectif du dispatch est de minimiser le coût interne de l'OE, compensation v
 ## Positionnement dans la chaîne décisionnelle
 
 ```
-Niveau 0  │ Caractérisation portefeuille (baseline, gisement)   ── hors scope
+Niveau 0  │ Caractérisation portefeuille (consos de référence, gisement)   ── hors scope
 Niveau 1  │ Offre sur le marché NEBCO                           ── hors scope
 Niveau 2  │ Dispatch interne post-notification RTE              ── CE PROJET
 Niveau 3  │ Pilotage temps réel des équipements                 ── hors scope
 ```
 
-**Boucle de rétroaction** : le réalisé mesuré au Niveau 3 alimente en retour le Niveau 0 (mise à jour des baselines, de la fiabilité des clients, du gisement effectif), qui conditionne les offres du Niveau 1 du jour suivant.
+**Boucle de rétroaction** : le réalisé mesuré au Niveau 3 alimente en retour le Niveau 0 (mise à jour des courbes de consommation de référence, de la fiabilité des clients, du gisement effectif), qui conditionne les offres du Niveau 1 du jour suivant.
 Un dispatch de mauvaise qualité dégrade l'indicateur de fiabilité de l'OE, ce qui resserre à son tour le plafond réglementaire (art. 5.E.1.3.2.2), la boucle a donc un effet disciplinant direct sur l'horizon court.
 
 ## Formulation
@@ -57,7 +57,7 @@ avec :
 - C4 : Couplage activation/effacement (big-M = borne naturelle)
 - C5 : Seuil minimal d'effacement si activé
 
-> Les justifications approfondies des choix de modélisation (choix MILP plutôt que LP, périmètre à une seule EDE sans distinction de profilage, absence du revenu NEBCO et du versement fournisseur dans l'objectif, Position A sur le rebond, bilan C3 sur horizon court vs période glissante, hypothèses exogènes sur baseline et gisement) sont développées dans la [note technique](docs/note-technique.md).
+> Les justifications approfondies des choix de modélisation (choix MILP plutôt que LP, périmètre à une seule EDE sans distinction de profilage, absence du revenu NEBCO et du versement fournisseur dans l'objectif, Position A sur le rebond, bilan C3 sur horizon court vs période glissante, hypothèses exogènes sur les consommations de référence et gisement) sont développées dans la [note technique](docs/note-technique.md).
 
 ## Structure du projet
 
@@ -154,7 +154,7 @@ Ce prototype privilégie la lisibilité de la formulation sur la fidélité opé
 - **Rebond hors horizon** : taux scalaire $r[c,t]$ qui capte l'ampleur mais pas le timing du rebond.
 - **Contrainte C3 bilan énergétique sur l'horizon d'optimisation court** : plus restrictif que le bilan NEBCO réel contrôlé sur période glissante.
 - **Pas de contraintes inter-temporelles** par client (durée minimale, temps de repos, nombre max d'activations).
-- **Baseline et gisement exogènes** : supposés connus, alors qu'ils font chacun l'objet d'un sous-problème non trivial.
+- **Consommations de référence et gisement exogènes** : supposés connus, alors qu'ils font chacun l'objet d'un sous-problème non trivial.
 - **Horizon fixe**, pas de redéclaration infrajournalière ; données déterministes.
 
 

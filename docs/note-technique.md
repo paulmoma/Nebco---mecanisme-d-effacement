@@ -15,7 +15,7 @@ Cette note rappelle succinctement le cadre réglementaire du mécanisme NEBCO et
 4. [Choix de la classe de modèle : LP vs MILP](#4-choix-de-la-classe-de-modèle--lp-vs-milp)
 5. [Modélisation du rebond : taux scalaire vs matrice impulsionnelle](#5-modélisation-du-rebond--taux-scalaire-vs-matrice-impulsionnelle)
 6. [Bilan énergétique C3 : horizon local vs période glissante NEBCO](#6-bilan-énergétique-c3--horizon-local-vs-période-glissante-nebco)
-7. [Baseline et gisement, données supposées connues](#7-baseline-et-gisement-données-supposées-connues)
+7. [Consommations de références et gisement, données supposées connues](#7-consommations-de-référence-et-gisement-données-supposées-connues)
 8. [Synthèse des perspectives](#8-synthèse-des-perspectives)
 
 ___
@@ -24,20 +24,20 @@ ___
 
 Le mécanisme NEBCO (Notification d'Échanges de Blocs de Consommation) permet à des Opérateurs d'Effacement (OE) agréés par RTE de valoriser des effacements de consommation sur les marchés de l'énergie, par exemple la veille pour le lendemain et en infrajournalier. Il succède au mécanisme NEBEF (Notification d'Échanges de Blocs d'Effacement), en vigueur depuis 2014 et s'en distingue principalement par la possibilité de valoriser également les modulations à la hausse dans le cadre de décalages de consommation (reports ou anticipations de consommation).
 
-Concrètement, le fonctionnement est le suivant : l'Opérateur d'Effacement (OE) contractualise des clients capables de réduire ponctuellement leur consommation (industriels, gestionnaires de chauffe-eau, opérateurs de recharge de véhicule électrique, etc.), organisés en **Entités d'Effacement (EDE)**, unités de gestion regroupant des sites de soutirage au sein du périmètre de l'OE. Il construit des offres d'effacement qu'il soumet sur les marchés de l'énergie ou sur le mécanisme d'ajustement de RTE, la réduction de soutirage étant traitée, du point de vue du réseau, comme équivalente à une injection de puissance. Lorsqu'une offre est retenue, RTE notifie à l'OE un programme d'effacement, un profil de puissance à livrer sur un horizon donné. Ce volume est valorisé sur les marchés de l'énergie (bourse EPEX Spot ou gré-à-gré). L'OE doit alors activer ses clients pour délivrer ce volume, tout en respectant les contraintes du cadre NEBCO (bilan énergétique, plafond de capacité, versement aux fournisseurs des sites effacés). Le contrôle du volume effectivement réalisé est assuré a posteriori par RTE sur la base de courbes de référence.
+Concrètement, le fonctionnement est le suivant : l'Opérateur d'Effacement (OE) contractualise des clients capables de réduire ponctuellement leur consommation (industriels, gestionnaires de chauffe-eau, opérateurs de recharge de véhicule électrique, etc.), organisés en **Entités d'Effacement (EDE)**, unités de gestion regroupant des sites de soutirage au sein du périmètre de l'OE. Il construit des offres d'effacement qu'il soumet à RTE. La réduction de soutirage est ensuite traitée comme à une injection de puissance. Lorsqu'une offre est retenue, RTE notifie à l'OE un programme d'effacement, un profil de puissance à livrer sur un horizon donné. Ce volume est valorisé sur les marchés de l'énergie (bourse EPEX Spot ou gré-à-gré). L'OE doit alors "activer ses clients" pour délivrer ce volume, c'est-à-dire demander à ses clients d'effectivement réduire leur consommation électrique. Le mécanisme NEBCO impose un certain nombre de contraintes (bilan énergétique, global, plafond de capacité, versements compensatoires aux fournisseurs des sites effacés) que l'Opérateur d'Effacement doit respecter. Le contrôle du volume effectivement réalisé est assuré a posteriori par RTE sur la base de consommation de référence.
 
 ### Décomposition en niveaux de décision
 
 L'activité d'un OE se décompose en niveaux emboîtés :
 
 ```
-Niveau 0  │ Caractérisation portefeuille (baseline, gisement)   ── hors scope
+Niveau 0  │ Caractérisation portefeuille (consos de référence, gisement)   ── hors scope
 Niveau 1  │ Offre sur le marché NEBCO                           ── hors scope
 Niveau 2  │ Dispatch interne post-notification RTE              ── CE PROJET
 Niveau 3  │ Pilotage temps réel des équipements                 ── hors scope
 ```
 
-Chaque niveau prend en entrée les sorties du précédent. La chaîne boucle : le réalisé mesuré au Niveau 3 alimente le Niveau 0 (mise à jour des baselines et du gisement), qui conditionne les offres du Niveau 1. Un dispatch qui ne permet pas de livrer le volume retenu dégrade l'indicateur de fiabilité de l'OE [NEBCO, art. 5.E.1.3.2.2]. 
+Chaque niveau prend en entrée les sorties du précédent. La chaîne boucle : le réalisé mesuré au Niveau 3 alimente le Niveau 0 (mise à jour des consommations de référence et du gisement), qui conditionne les offres du Niveau 1. Un dispatch qui ne permet pas de livrer le volume retenu dégrade l'indicateur de fiabilité de l'OE [NEBCO, art. 5.E.1.3.2.2]. 
 
 C'est le problème de **dispatch interne**, le niveau 2, ventiler le programme retenu entre les clients du portefeuille, qui est l'objet du présent projet.
 
@@ -61,7 +61,7 @@ Opérateur d'Effacement (OE)              ← personne morale agréée par RTE
 
 Le prototype v1 considère **un Opérateur d'Effacement gérant un Périmètre d'Equilibre contenant une seule EDE**, laquelle regroupe les N clients du portefeuille. C'est une simplification de modélisation, pas une position réglementaire.
 
-**La typologie de l'EDE (Télérelevée ou Profilée) n'est pas distinguée.** Cette distinction est pourtant importante dans NEBCO : elle conditionne la méthode de contrôle du réalisé (mesure directe des courbes de charge pour les sites télérelevés, méthode des panels pour les sites profilés), et donc la façon dont la baseline (courbe de consommation de référence) et le rebond sont reconstruits. En ignorant cette distinction, le modèle traite tous les clients comme s'ils étaient télérelevés avec mesure directe.
+**La typologie de l'EDE (Télérelevée ou Profilée) n'est pas distinguée.** Cette distinction est pourtant importante dans NEBCO : elle conditionne la méthode de contrôle du réalisé (mesure directe des courbes de charge pour les sites télérelevés, méthode des panels pour les sites profilés), et donc la façon dont la courbe de consommation de référence et le rebond sont reconstruits. En ignorant cette distinction, le modèle traite tous les clients comme s'ils étaient télérelevés avec mesure directe.
 
 La distinction Télérelevée/Profilée a des conséquences qui dépassent le Niveau 2 et touchent directement le Niveau 1 (offre sur le marché). En effet, le **barème de versement fournisseur** est **différencié par typologie d'EDE** : un barème pour les sites télérelevés et un pour les sites profilés, avec des formules propres à chaque catégorie. La typologie d'EDE est fortement corrélée avec la puissance souscrite (les sites de puissance > 36 kVA sont en pratique télérelevés), ce qui distingue formellement les deux catégories est la modalité de mesure, pas le seuil tarifaire. Les barèmes sont publiés par RTE et approuvés par la CRE [CRE-2025-275].
 
@@ -117,7 +117,7 @@ Avec les variables suivantes :
 
 Toutes les variables continues sont positives ($x_{c,t} \geq 0$), ce qui est implicitement garanti par C5 ($x_{c,t} \geq e_{min,c,t} \cdot \delta_{c,t}$ avec $e_{min} \geq 0$ et $\delta \in \{0,1\}$) mais doit être déclaré explicitement au solveur.
 
-La borne supérieure $ub_{c,t}$, définie dans le tableau ci-dessus comme le minimum de $p_{c,t}^{max}$ et $conso_{c,t}^{ref}$, intègre à la fois la puissance maximale que le client $c$ consent à effacer et la contrainte de baseline (on ne peut pas effacer plus qu'on ne consomme). Elle intervient dans C4 et dans la borne de la variable $x_{c,t}$.
+La borne supérieure $ub_{c,t}$, définie dans le tableau ci-dessus comme le minimum de $p_{c,t}^{max}$ et $conso_{c,t}^{ref}$, intègre à la fois la puissance maximale que le client $c$ consent à effacer et la contrainte de courbe de consommation de référence (on ne peut pas effacer plus qu'on ne consomme). Elle intervient dans C4 et dans la borne de la variable $x_{c,t}$.
 
 En pratique, C2 est rarement active si on contraint la livraison stricte de la consigne RTE : RTE ne devrait pas notifier un programme retenu excédant le plafond de l'OE. Néanmoins la contrainte est conservée comme garde-fou de cohérence et deviendrait structurante si l'on relâchait C1 en inégalité (sur-livraison possible mais pénalisée).
 
@@ -264,7 +264,7 @@ Conséquences principales :
 
 Identifier $R_c[\tau]$ à partir de mesures est relativement facile pour les équipements à dynamique physique simple. 
 Pour des équipements plus complexes, soit la physique du procédé l'est, soit le rebond dépend du comportement du client (arbitrage entre confort, contrainte opérationnelle, gain financier), qui ne se modélise pas analytiquement. 
-**Le machine learning** offre alors une alternative : apprendre $R_c[\tau]$ à partir de l'historique des effacements et des écarts à la baseline mesurés, sans hypothèse a priori sur la forme de la réponse.
+**Le machine learning** offre alors une alternative : apprendre $R_c[\tau]$ à partir de l'historique des effacements et des écarts à la courbe de cosommation de référence mesurés, sans hypothèse a priori sur la forme de la réponse.
 
 Cette extension serait l'amélioration la plus importante du modèle.
 ___
@@ -290,22 +290,22 @@ Le modèle v1 applique C3 sur l'horizon d'optimisation court (3 heures), ce qui 
 
 ___
 
-## 7. Baseline et gisement, données supposées connues
+## 7. Consommation de référence et gisement, données supposées connues
 
 Deux entrées majeures du modèle sont supposées connues, alors qu'elles sont l'objet de sous-problèmes non triviaux :
 
-### 7.1 Baseline (Courbe de Référence NEBCO)
+### 7.1 Courbe de consommation de référence
 
 $conso^{ref}_{c,t}$ est la consommation qu'aurait eu le client en l'absence d'effacement. Elle sert à deux choses dans le modèle :
 - Borne supérieure de l'effacement (on ne peut pas effacer plus qu'on ne consomme).
 - Référence pour le contrôle du réalisé par RTE *a posteriori*.
 
-La construction de la baseline est un problème statistique non trivial, dont les méthodes admises sont définies dans les fiches techniques transverses des Dispositions Générales des Règles de Marché de RTE [RM-0] :
+La construction de la courbe de consommation de référence est un problème statistique non trivial, dont les méthodes admises sont définies dans les fiches techniques transverses des Dispositions Générales des Règles de Marché de RTE [RM-0] :
 
 - Pour les sites Télérelevés, quatre méthodes sont éligibles selon les caractéristiques du site : *rectangle à double référence corrigée*, *rectangle algébrique site à site*, *par prévision de consommation*, *par historique de consommation* [RM-0, NEBCO §5.E].
 - Pour les sites Profilés, la **méthode des panels** introduite avec NEBCO [CRE-2025-199 §2.2] reconstruit la courbe de référence d'une EDE à partir d'un *panel miroir* de sites représentatifs hors activation. La courbe est une moyenne pondérée des courbes de charge du panel, avec une pondération qui minimise l'écart à la consommation observée sur une période de référence hors plages d'effacement [Enedis-CR, RTE-NEBCO-RA].
 
-Le modèle v1 prend $conso_{ref}$ comme entrée. Un projet réel devrait soit intégrer un module de construction de baseline, soit coupler le dispatch à un service externe qui la fournit.
+Le modèle v1 prend $conso_{ref}$ comme entrée. Un projet réel devrait soit intégrer un module de construction de la courbe de consommation de référence  soit coupler le dispatch à un service externe qui la fournit.
 
 ### 7.2 Gisement effaçable
 
